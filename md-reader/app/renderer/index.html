@@ -159,6 +159,8 @@ body:not(.side-hidden) #content{left:var(--sidebar-w)}
   padding:calc(var(--title-h) + var(--toolbar-h) + 30px) 44px calc(var(--status-h) + 30px);border:none;outline:none;resize:none;width:100%;height:100%;tab-size:2;display:none}
 body[data-mode="source"] #editorWrap{display:none}
 body[data-mode="source"] #source{display:block}
+/* 非源码模式：源码面板彻底退出命中测试（否则透明全屏层吃掉编辑区滚轮/点击） */
+body:not([data-mode="source"]) #sourcePane{visibility:hidden;pointer-events:none}
 /* 阅读模式隐藏 Crepe 编辑控件 */
 body[data-mode="read"] #editorWrap .ProseMirror{caret-color:transparent}
 body[data-mode="read"] [class*="toolbar"],body[data-mode="read"] [class*="block-edit"],
