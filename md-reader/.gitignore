@@ -1,0 +1,15 @@
+# 依赖与构建产物
+node_modules/
+app/dist/
+*.log
+
+# 单文件版为构建产物（tools/build-standalone.py 可再生）
+# 但作为交付物保留入库，不忽略
+
+# 本地测试产物
+test-doc.md
+assoc-test.md
+
+# 系统文件
+.DS_Store
+Thumbs.db
