@@ -243,9 +243,41 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .p-item.sel{background:var(--accent-soft);color:var(--accent)}
 .p-item .hint{margin-left:auto;font-size:11px;color:var(--muted)}
 #banner{display:none;position:fixed;top:calc(var(--title-h) + var(--toolbar-h));left:0;right:0;z-index:35;padding:7px 16px;background:#b3261e;color:#fff;font-size:13px}
+/* ============ 查找条 ============ */
+#findbar{position:fixed;top:calc(var(--title-h) + var(--toolbar-h) + 10px);left:50%;transform:translateX(-50%);
+  z-index:45;display:none;align-items:center;gap:6px;padding:6px 10px;border-radius:var(--r-md);
+  border:1px solid var(--glass-border);box-shadow:var(--shadow-2);
+  background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(24px) saturate(1.5);backdrop-filter:blur(24px) saturate(1.5)}
+#findbar.show{display:flex}
+#findbar input{width:220px;height:28px;border:none;outline:none;background:none;color:var(--ink);
+  font:13px var(--font);padding:0 4px}
+#findbar input::placeholder{color:var(--muted)}
+#findCount{font:11.5px var(--mono);color:var(--muted);min-width:44px;text-align:center}
+#findbar .tbtn{height:26px;padding:0 6px}
+::highlight(mdr-search){background:var(--accent-soft);color:inherit}
+::highlight(mdr-cur){background:var(--accent);color:var(--accent-ink)}
 #toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:var(--ink);color:var(--bg);
   padding:8px 18px;border-radius:99px;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
 #toast.show{opacity:1}
+/* ============ M2: 查找栏 ============ */
+#findbar{position:fixed;top:calc(var(--title-h) + var(--toolbar-h) + 8px);right:16px;z-index:36;display:none;align-items:center;gap:6px;
+  padding:6px 8px;border:1px solid var(--glass-border);border-radius:var(--r-md);box-shadow:var(--shadow-2);
+  background:var(--glass-strong);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4)}
+#findbar.show{display:flex}
+#findInput{width:210px;height:28px;border:none;outline:none;background:var(--surface);border-radius:6px;padding:0 10px;font:13px var(--font);color:var(--ink)}
+#findCount{font-size:12px;color:var(--muted);min-width:48px;text-align:center}
+#findbar .tbtn{height:26px;padding:0 8px}
+#editorWrap mark.mdr-hit{background:rgba(255,196,0,.45);color:inherit;padding:0 1px;border-radius:2px}
+#editorWrap mark.mdr-hit.cur{background:var(--accent);color:var(--accent-ink)}
+/* ============ M2: 导出菜单 ============ */
+#exportMenu{position:fixed;z-index:37;display:none;flex-direction:column;min-width:170px;padding:6px;
+  border:1px solid var(--glass-border);border-radius:var(--r-md);box-shadow:var(--shadow-2);
+  background:var(--glass-strong);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4)}
+#exportMenu.show{display:flex}
+#exportMenu button{height:32px;padding:0 12px;border-radius:6px;font-size:13px;text-align:left;display:flex;gap:8px;align-items:center;color:var(--ink)}
+#exportMenu button:hover{background:var(--accent-soft);color:var(--accent)}
+#exportMenu button:disabled{opacity:.4;cursor:default}
 </style>
 </head>
 <body data-mode="edit">
@@ -278,6 +310,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </button>
   <div class="vline"></div>
   <button class="tbtn" id="btnTheme" title="切换主题">主题：自动</button>
+  <button class="tbtn" id="btnExport" title="导出" hidden>导出</button>
   <button class="tbtn" id="btnSettings" title="设置">
     <svg class="ic" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.5"/><path d="M10 3v2.2M10 14.8V17M3 10h2.2M14.8 10H17M5.1 5.1l1.5 1.5M13.4 13.4l1.5 1.5M14.9 5.1l-1.5 1.5M6.6 13.4l-1.5 1.5"/></svg>
     <span>设置</span>
@@ -398,7 +431,28 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div>
 </div>
 
+<div id="findbar">
+  <input id="findInput" placeholder="查找…">
+  <span id="findCount"></span>
+  <button class="tbtn" id="findPrev" title="上一个">↑</button>
+  <button class="tbtn" id="findNext" title="下一个">↓</button>
+  <button class="tbtn" id="findClose" title="关闭">✕</button>
+</div>
+<div id="exportMenu">
+  <button id="expHtml">导出 HTML…</button>
+  <button id="expPdf">导出 PDF…</button>
+</div>
 <div id="toast"></div>
+
+<!-- 查找条 -->
+<div id="findbar">
+  <svg class="ic" viewBox="0 0 20 20" style="color:var(--muted)"><circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/></svg>
+  <input id="findInput" placeholder="在文档中查找…">
+  <span id="findCount"></span>
+  <button class="tbtn" id="findPrev" title="上一个 (Shift+Enter)"><svg class="ic" viewBox="0 0 16 16" style="width:13px;height:13px"><path d="M4 10l4-4 4 4"/></svg></button>
+  <button class="tbtn" id="findNext" title="下一个 (Enter)"><svg class="ic" viewBox="0 0 16 16" style="width:13px;height:13px"><path d="M4 6l4 4 4-4"/></svg></button>
+  <button class="tbtn" id="findClose" title="关闭 (Esc)"><svg class="ic" viewBox="0 0 16 16" style="width:12px;height:12px"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+</div>
 
 <script type="text/plain" id="doc-demo">
 # 功能演示 · Markdown 全要素
@@ -522,6 +576,9 @@ MIT
 预期工作量 $t = t_0 \times 1.2$（含测试缓冲）。
 </script>
 
+<!-- Markdown 渲染器（导出用，IIFE 全局 mdrMd） -->
+<script src="vendor/md-bundle.js"></script>
+
 <script type="module">
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -540,6 +597,11 @@ try {
   try { Crepe = (await import('https://esm.sh/@milkdown/crepe@7.22.1?bundle')).Crepe; $('#stEngine').textContent='Milkdown Crepe (CDN)'; }
   catch(e2){ $('#stEngine').textContent='静态降级'; errPush('编辑内核加载失败：'+e2); }
 }
+
+/* ---------- Markdown 渲染器（导出用，CommonMark+GFM，IIFE 全局 mdrMd） ---------- */
+let mdrMd = null;
+function mdrMdReady(){ if(window.mdrMd) mdrMd = window.mdrMd; }
+mdrMdReady();
 
 /* ---------- 状态 ---------- */
 const docs = { demo:$('#doc-demo').textContent.trim(), readme:$('#doc-readme').textContent.trim(), notes:$('#doc-notes').textContent.trim() };
@@ -660,6 +722,7 @@ async function openDoc(o){
   $('#stSave').textContent=saved&&!o.handle?'已恢复本地修改':'就绪';
   if(mode==='source') $('#source').value=cur.text;
   await mountEditor(cur.text);
+  restorePos();
 }
 $$('.tree-item').forEach(b=>b.onclick=()=>openDoc({id:b.dataset.doc,text:docs[b.dataset.doc]}));
 $$('#recentList .w-item').forEach(b=>b.onclick=()=>openDoc({id:b.dataset.doc,text:docs[b.dataset.doc]}));
@@ -710,6 +773,7 @@ async function pickDir(){
   if(window.mdr?.isElectron){
     const dir = await window.mdr.openDirDialog();
     if(!dir) return;
+    await window.mdr.setShelf(dir);
     const { files } = await window.mdr.listMd(dir);
     renderShelf(dir, files);
     return;
@@ -764,6 +828,9 @@ const commands=[
   { t:'模式：源码', k:'', run:()=>setMode('source') },
   { t:'切换主题（自动→浅色→深色）', k:'', run:()=>$('#btnTheme').click() },
   { t:'打开设置', k:'', run:()=>showDrawer(true) },
+  { t:'查找（当前文档）', k:'Ctrl F', run:()=>{ if(cur) openFind(); } },
+  { t:'导出 HTML', k:'', run:()=>doExport('html') },
+  { t:'导出 PDF', k:'', run:()=>doExport('pdf') },
   { t:'回到主页（关闭文档）', k:'', run:()=>{ document.body.removeAttribute('data-doc-open'); cur=null; $('#stSave').textContent='就绪'; $('#docTitle').innerHTML='未打开文档'; } },
   { t:'侧栏显示/隐藏', k:'', run:()=>document.body.classList.toggle('side-hidden') },
 ];
@@ -789,6 +856,7 @@ palInput.oninput=()=>renderPal(palInput.value);
 palette.querySelector('.scrim2').onclick=closePal;
 window.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); palette.classList.contains('show')?closePal():openPal(); }
+  else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='f'){ e.preventDefault(); if(cur) openFind(); }
   else if(palette.classList.contains('show')){
     if(e.key==='Escape') closePal();
     else if(e.key==='ArrowDown'){ e.preventDefault(); palMove(1); }
@@ -819,12 +887,189 @@ function wireWindowControls(){
   window.mdr.onMaxChange(v=>{ $('#btnMax').style.transform=v?'rotate(180deg)':''; });
 }
 
+/* ---------- 导出（HTML / PDF） ---------- */
+async function buildExportHtml(){
+  const mdText = (crepe && mode !== 'source') ? await crepe.getMarkdown() : $('#source').value;
+  const htmlBody = mdrMd.default.render(mdText);
+  // 相对路径图片 → data URI 内联
+  const docRoot = cur?.path ? cur.path.replace(/[\\/][^\\/]+$/, '') : null;
+  const tmp = document.createElement('div'); tmp.innerHTML = htmlBody;
+  const imgs = [...tmp.querySelectorAll('img')];
+  for (const img of imgs) {
+    const src = img.getAttribute('src') || '';
+    if (/^(https?:|data:)/.test(src) || !docRoot) continue;
+    try {
+      const r = await window.mdr.readB64(docRoot + '/' + src.replace(/^\.\//, ''));
+      img.setAttribute('src', `data:${r.mime};base64,${r.data}`);
+    } catch {}
+  }
+  let katexCss = '';
+  try { katexCss = await (await fetch('vendor/katex-export.css')).text(); }
+  catch { katexCss = await (await fetch('vendor/katex/katex.min.css')).text(); }
+  const katexJs = await (await fetch('vendor/katex/katex.min.js')).text().catch(() => '');
+  const hljsCss = await (await fetch('vendor/hljs.css')).text().catch(() => '');
+  const style = `
+    body{margin:0;background:#fff;color:#22262a;font-family:-apple-system,"MiSans","HarmonyOS Sans SC","Microsoft YaHei UI","PingFang SC","Segoe UI",sans-serif;font-size:12.5pt;line-height:1.9}
+    .wrap{max-width:46em;margin:0 auto;padding:2em 1em}
+    h1,h2,h3,h4{font-weight:700;line-height:1.4} h2{border-bottom:1px solid #e3e4de;padding-bottom:.25em}
+    blockquote{margin:1em 0;padding:.2em 0 .2em 1em;border-left:3px solid #177e6d;color:#71767c}
+    code{font-family:"Cascadia Code",Consolas,monospace;font-size:.82em;background:#f4f4ef;border:1px solid #e3e4de;border-radius:4px;padding:.08em .35em}
+    pre{background:#f4f4ef;border:1px solid #e3e4de;border-radius:8px;padding:1em;overflow:auto} pre code{border:none;background:none;padding:0;font-size:.85em;line-height:1.6}
+    table{width:100%;border-collapse:collapse;margin:1.2em 0;font-size:.95em} th{background:#f6f6f2}
+    th,td{border:1px solid #e3e4de;padding:6px 10px;text-align:left}
+    hr{border:none;border-top:1px solid #e3e4de;margin:2em 0} a{color:#177e6d;text-decoration:none}
+    img{max-width:100%} .footnotes{font-size:.85em;color:#71767c}
+    ${hljsCss}
+  `;
+  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>${esc(cur?.name || 'document')}</title>
+<style>${katexCss}</style><style>${style}</style>
+<script>${katexJs}</` + `script>
+<script>document.addEventListener("DOMContentLoaded",function(){
+  document.querySelectorAll("script[type^='math/tex']").forEach(function(s){
+    var tex=s.textContent, display=s.type.indexOf('display')>-1;
+    var el=document.createElement(display?'div':'span');
+    try{ katex.render(tex, el, {displayMode:display, throwOnError:false}); s.replaceWith(el); }catch(e){}
+  });
+  if(window.mermaid!==undefined){ mermaid.initialize({startOnLoad:true}); }
+});</` + `script></head><body><div class="wrap">${tmp.innerHTML}</div></body></html>`;
+}
+
+async function doExport(kind){
+  if(!cur){ toast('先打开一个文档'); return; }
+  const base = (cur.name || 'document').replace(/\.(md|markdown)$/i, '');
+  if(!window.mdr?.isElectron){ toast('导出需在 LightInk 桌面版中使用'); return; }
+  const target = await window.mdr.exportSaveDialog(base + (kind==='pdf'?'.pdf':'.html'), kind);
+  if(!target) return;
+  try{
+    if(kind === 'pdf'){
+      const html = await buildExportHtml();
+      toast('正在生成 PDF…');
+      await window.mdr.exportPrintPdf(target, html);
+    } else {
+      const html = await buildExportHtml();
+      await window.mdr.exportWrite(target, html);
+    }
+    toast('已导出：' + target.split(/[\\/]/).pop());
+  }catch(e){ errPush('导出失败：' + (e.message||e)); }
+}
+
+/* ---------- 文内查找（CSS Custom Highlight API） ---------- */
+const findbar=$('#findbar'), findInput=$('#findInput'), findCount=$('#findCount');
+let findRanges=[], findIdx=-1, findTimer=null;
+const supportsHighlight = typeof CSS !== 'undefined' && CSS.highlights;
+
+function clearFind(){
+  findRanges=[]; findIdx=-1;
+  if(supportsHighlight){ CSS.highlights.delete('mdr-search'); CSS.highlights.delete('mdr-cur'); }
+  findCount.textContent='';
+}
+function doFind(q){
+  clearFind();
+  if(!q || !cur){ return; }
+  const pm=document.querySelector('.ProseMirror'); if(!pm) return;
+  const walker=document.createTreeWalker(pm, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => n.textContent.toLowerCase().includes(q.toLowerCase()) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+  });
+  const ql=q.toLowerCase(); const nodes=[];
+  let n; while((n=walker.nextNode())) nodes.push(n);
+  for(const node of nodes){
+    const text=node.textContent.toLowerCase();
+    let i=0;
+    while((i=text.indexOf(ql,i))!==-1){
+      try{ const r=new Range(); r.setStart(node,i); r.setEnd(node,i+q.length); findRanges.push(r); }catch(_){}
+      i+=q.length;
+    }
+  }
+  if(supportsHighlight && findRanges.length){
+    CSS.highlights.set('mdr-search', new Highlight(...findRanges));
+    stepFind(1, false);
+  } else {
+    findCount.textContent = supportsHighlight ? '0 结果' : '';
+  }
+}
+function stepFind(dir, focus=true){
+  if(!findRanges.length) return;
+  findIdx=(findIdx+dir+findRanges.length)%findRanges.length;
+  if(supportsHighlight){
+    CSS.highlights.set('mdr-cur', new Highlight(findRanges[findIdx]));
+  }
+  findCount.textContent=`${findIdx+1}/${findRanges.length}`;
+  if(focus){
+    const r=findRanges[findIdx].getBoundingClientRect();
+    if(r.top<84 || r.bottom>window.innerHeight-26){
+      findRanges[findIdx].startContainer.parentElement?.scrollIntoView({block:'center',behavior:'smooth'});
+    }
+  }
+}
+function openFind(){
+  findbar.classList.add('show'); findInput.focus(); findInput.select();
+  if(findInput.value) doFind(findInput.value);
+}
+function closeFind(){ findbar.classList.remove('show'); clearFind(); }
+findInput.addEventListener('input',()=>{ clearTimeout(findTimer); findTimer=setTimeout(()=>doFind(findInput.value.trim()),200); });
+findInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); stepFind(e.shiftKey?-1:1); }
+  else if(e.key==='Escape'){ closeFind(); }
+});
+$('#findNext').onclick=()=>stepFind(1);
+$('#findPrev').onclick=()=>stepFind(-1);
+$('#findClose').onclick=closeFind;
+
+/* ---------- M2: 书架持久化 / 阅读位置 / 查找 / 导出 ---------- */
+async function restoreShelf(){
+  if(!window.mdr?.isElectron) return;
+  try{
+    const dir = await window.mdr.getShelf();
+    if(!dir) return;
+    const { files } = await window.mdr.listMd(dir);
+    renderShelf(dir, files);
+  }catch(e){ /* 目录失效时静默，等用户重新选择 */ }
+}
+let posTimer=null;
+function scheduleSavePos(){
+  if(!cur||!cur.path||!window.mdr?.isElectron) return;
+  clearTimeout(posTimer);
+  posTimer=setTimeout(()=>{
+    const pane = mode==='source' ? $('#sourcePane') : $('#editorPane');
+    const max = pane.scrollHeight - pane.clientHeight;
+    if(max>0) window.mdr.readingSet(cur.path, pane.scrollTop/max);
+  },400);
+}
+async function restorePos(){
+  if(!cur||!cur.path||!window.mdr?.isElectron) return;
+  try{
+    const all = await window.mdr.readingAll();
+    const ratio = all[cur.path];
+    if(ratio==null) return;
+    // 编辑器懒初始化会持续改变文档高度，双阶段恢复：先近似，800ms 后校正
+    const apply = () => {
+      const pane = $('#editorPane');
+      const max = pane.scrollHeight - pane.clientHeight;
+      if(max>0) pane.scrollTop = Math.max(0, Math.min(1, ratio)) * max;
+    };
+    requestAnimationFrame(apply);
+    setTimeout(apply, 900);
+  }catch(e){}
+}
+$('#editorPane').addEventListener('scroll', scheduleSavePos, {passive:true});
+$('#sourcePane').addEventListener('scroll', scheduleSavePos, {passive:true});
+
+$('#btnExport').onclick=e=>{ e.stopPropagation(); $('#exportMenu').classList.toggle('show'); };
+$('#expHtml').onclick=()=>doExport('html');
+$('#expPdf').onclick=()=>doExport('pdf');
+window.__buildExportHtml = buildExportHtml; // 测试钩子
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#exportMenu')&&!e.target.closest('#btnExport')) $('#exportMenu').classList.remove('show');
+});
+
 /* ---------- 启动 ---------- */
 applySettings(); applyTheme();
 if(window.mdr?.isElectron){
   wireWindowControls();
   loadRecentsUI();
   window.mdr.onOpenPath(openPath);
+  $('#btnExport').hidden=false;
+  restoreShelf();
 }
 </script>
 </body>

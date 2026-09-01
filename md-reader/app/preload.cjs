@@ -7,12 +7,24 @@ contextBridge.exposeInMainWorld('mdr', {
   writeFile: (p, text) => ipcRenderer.invoke('file:write', p, text),
   fileExists: (p) => ipcRenderer.invoke('file:exists', p),
   listMd: (dir) => ipcRenderer.invoke('dir:list-md', dir),
+  readB64: (p) => ipcRenderer.invoke('file:read-b64', p),
+  getShelf: () => ipcRenderer.invoke('shelf:get'),
+  setShelf: (dir) => ipcRenderer.invoke('shelf:set', dir),
+  exportSaveDialog: (defName, ext) => ipcRenderer.invoke('export:save-dialog', defName, ext),
+  exportWrite: (p, html) => ipcRenderer.invoke('export:write', p, html),
+  exportPrintPdf: (p, html) => ipcRenderer.invoke('export:print-pdf', p, html),
   getPathForFile: (file) => webUtils.getPathForFile(file),
 
   /* 最近文件 */
   listRecents: () => ipcRenderer.invoke('recents:list'),
   addRecent: (p, name) => ipcRenderer.invoke('recents:add', p, name),
   clearRecents: () => ipcRenderer.invoke('recents:clear'),
+
+  /* 设置与阅读位置 */
+  getSettings: () => ipcRenderer.invoke('settings:get'),
+  setSettings: (patch) => ipcRenderer.invoke('settings:set', patch),
+  readingAll: () => ipcRenderer.invoke('reading:all'),
+  readingSet: (key, ratio) => ipcRenderer.invoke('reading:set', key, ratio),
 
   /* 系统对话框 */
   openFileDialog: () => ipcRenderer.invoke('sys:open-file-dialog'),
