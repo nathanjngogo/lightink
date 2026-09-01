@@ -1,0 +1,17 @@
+{
+  "name": "md-reader",
+  "productName": "MD 阅读器",
+  "version": "1.0.0",
+  "description": "本地 Markdown 编辑器 + 阅读器",
+  "main": "main.cjs",
+  "author": "user",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  }
+}
