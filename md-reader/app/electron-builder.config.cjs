@@ -2,10 +2,11 @@
  * @type {import('electron-builder').Configuration}
  */
 module.exports = {
-  appId: 'com.local.mdreader',
-  productName: 'MD 阅读器',
+  appId: 'app.lightink.reader',
+  productName: 'LightInk',
   directories: { output: 'dist' },
   files: ['main.cjs', 'preload.cjs', 'renderer/**/*'],
+  artifactName: '${productName}-Setup-${version}.${ext}',
   win: {
     icon: 'build/icon.ico',
     target: [{ target: 'nsis', arch: ['x64'] }],
@@ -20,6 +21,6 @@ module.exports = {
     perMachine: false,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
-    shortcutName: 'MD 阅读器',
+    shortcutName: 'LightInk 轻墨',
   },
 };

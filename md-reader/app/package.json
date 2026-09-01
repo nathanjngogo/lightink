@@ -1,8 +1,8 @@
 {
-  "name": "md-reader",
-  "productName": "MD 阅读器",
+  "name": "lightink",
+  "productName": "LightInk",
   "version": "1.0.0",
-  "description": "本地 Markdown 编辑器 + 阅读器",
+  "description": "轻墨 LightInk — 本地 Markdown 编辑器 + 阅读器",
   "main": "main.cjs",
   "author": "user",
   "license": "MIT",
