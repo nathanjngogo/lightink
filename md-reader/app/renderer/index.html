@@ -282,7 +282,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 #exportMenu button:disabled{opacity:.4;cursor:default}
 </style>
 </head>
-<body data-mode="edit">
+<body data-mode="read">
 
 <!-- 标题栏 -->
 <header id="titlebar">
@@ -301,8 +301,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <svg class="ic" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M8 4v12"/></svg>
   </button>
   <div class="seg" id="modeSeg">
-    <button data-m="edit" class="on">编辑</button>
     <button data-m="read">阅读</button>
+    <button data-m="edit">编辑</button>
     <button data-m="source">源码</button>
   </div>
   <div class="spacer"></div>
@@ -609,7 +609,7 @@ mdrMdReady();
 const docs = { demo:$('#doc-demo').textContent.trim(), readme:$('#doc-readme').textContent.trim(), notes:$('#doc-notes').textContent.trim() };
 const docNameOf = { demo:'功能演示.md', readme:'README示例.md', notes:'会议笔记.md' };
 const LS = { theme:'mdr:theme', set:'mdr:settings', doc:id=>'mdr:doc:'+id };
-let crepe=null, mode='edit', cur=null, saveTimer=null, outlineTimer=null;
+let crepe=null, mode='read', cur=null, saveTimer=null, outlineTimer=null;
 const settings = Object.assign({ fs:17, lh:1.9, mw:44, autosave:true }, JSON.parse(localStorage.getItem(LS.set)||'{}'));
 
 /* ---------- 设置 ---------- */
@@ -708,6 +708,8 @@ async function setMode(m){
   if(crepe) try{ crepe.setReadonly(m==='read'); }catch(_){}
   $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
   $('#stMode').textContent=({edit:'所见即所得',read:'阅读模式',source:'源码模式'})[m];
+  if(m==='edit') $('#editorPane').focus?.();
+  localStorage.setItem('mdr:lastMode', m);
 }
 $$('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 
@@ -722,7 +724,11 @@ async function openDoc(o){
   const dot=document.createElement('span'); dot.className='dot'; $('#docTitle').appendChild(dot);
   $('#docTitle').classList.remove('modified');
   $('#stSave').textContent=saved&&!o.handle?'已恢复本地修改':'就绪';
-  if(mode==='source') $('#source').value=cur.text;
+  // 文档默认以阅读模式打开（独立于上次模式）
+  mode='read';
+  document.body.dataset.mode='read';
+  $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m==='read'));
+  $('#stMode').textContent='阅读模式';
   await mountEditor(cur.text);
   restorePos();
 }
@@ -1078,6 +1084,8 @@ document.addEventListener('click',e=>{
 
 /* ---------- 启动 ---------- */
 applySettings(); applyTheme();
+$$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m==='read'));
+$('#stMode').textContent='阅读模式';
 if(window.mdr?.isElectron){
   wireWindowControls();
   loadRecentsUI();
