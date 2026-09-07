@@ -23,7 +23,17 @@ app.on('second-instance', (_e, argv) => {
   win.focus();
   const file = pickFileArg(argv);
   if (file) {
-    win.webContents.send('menu:open-path', file);
+    // 第二实例冷启动时渲染层监听可能尚未注册，同样握手+重试
+    let delivered = false;
+    win.webContents.on('ipc-message', (_e, ch) => { if (ch === 'open-path:acked') delivered = true; });
+    const push = () => { if (!delivered) win.webContents.send('menu:open-path', file); };
+    push();
+    let n = 0;
+    const timer = setInterval(() => {
+      n += 1;
+      if (delivered || n >= 10) { clearInterval(timer); return; }
+      push();
+    }, 600);
     addRecent(file, path.basename(file));
   }
 });
@@ -120,8 +130,19 @@ function createWindow(startFile) {
   win.loadURL('app://local/index.html');
 
   if (startFile) {
+    // 渲染层模块顶层有异步 import（Crepe 加载），open-path 监听注册可能晚于 did-finish-load。
+    // 采用握手 + 重试：渲染层 ready 后立即发；否则每 700ms 重试至多 5 次。
+    let delivered = false;
+    win.webContents.on('ipc-message', (_e, ch) => { if (ch === 'open-path:acked') delivered = true; });
+    const push = () => { if (!delivered) win.webContents.send('menu:open-path', startFile); };
     win.webContents.once('did-finish-load', () => {
-      win.webContents.send('menu:open-path', startFile);
+      push();
+      let n = 0;
+      const timer = setInterval(() => {
+        n += 1;
+        if (delivered || n >= 10) { clearInterval(timer); return; }
+        push();
+      }, 600);
     });
   }
 }

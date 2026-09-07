@@ -46,7 +46,9 @@ contextBridge.exposeInMainWorld('mdr', {
   winClose: () => ipcRenderer.invoke('win:close'),
   winIsMax: () => ipcRenderer.invoke('win:is-max'),
   onMaxChange: (fn) => ipcRenderer.on('win:maximized', (_e, v) => fn(v)),
-  onOpenPath: (fn) => ipcRenderer.on('menu:open-path', (_e, p) => fn(p)),
+  onOpenPath: (fn) => {
+    ipcRenderer.on('menu:open-path', (_e, p) => { fn(p); ipcRenderer.send('open-path:acked'); });
+  },
 
   /* 环境 */
   isElectron: true,
