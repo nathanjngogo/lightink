@@ -12,6 +12,7 @@
 /* ============ Design Tokens ============ */
 :root{
   --bg:#fdfdfb; --surface:#f5f5f1; --surface2:#eceded; --ink:#22262a; --muted:#71767c;
+  --edit-bg:#f3f4f1;
   --border:#e3e4de; --border-strong:#d3d5cd;
   --accent:#177e6d; --accent-ink:#ffffff; --accent-soft:rgba(23,126,109,.10);
   --code-bg:#f4f4ef; --sel:rgba(23,126,109,.16);
@@ -38,6 +39,8 @@ html[data-theme="dark"]{
 @media (prefers-color-scheme: dark){
   html[data-theme="auto"]{
     --bg:#1a1c1d; --surface:#212425; --surface2:#2a2d2f; --ink:#d8dad6; --muted:#8b9094;
+    --edit-bg:#202324;
+    --edit-bg:#202324;
     --border:#2e3234; --border-strong:#3c4144;
     --accent:#4cc2ae; --accent-ink:#10221e; --accent-soft:rgba(76,194,174,.12);
     --code-bg:#222627; --sel:rgba(76,194,174,.22);
@@ -167,6 +170,7 @@ body[data-mode="source"] #source{display:block}
 /* 非源码模式：源码面板彻底退出命中测试（否则透明全屏层吃掉编辑区滚轮/点击） */
 body:not([data-mode="source"]) #sourcePane{visibility:hidden;pointer-events:none}
 /* 阅读模式隐藏 Crepe 编辑控件 */
+body[data-mode="edit"] #editorPane{background:var(--edit-bg)}
 body[data-mode="read"] #editorWrap .ProseMirror{caret-color:transparent}
 body[data-mode="read"] [class*="toolbar"],body[data-mode="read"] [class*="block-edit"],
 body[data-mode="read"] [class*="slash"],body[data-mode="read"] [class*="link-tooltip"]{display:none!important}
