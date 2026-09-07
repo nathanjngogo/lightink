@@ -50,7 +50,7 @@ function addRecent(p, name) {
 }
 function pickFileArg(argv) {
   for (const a of argv) {
-    if (/\.md$/i.test(a) && fs.existsSync(a)) return path.resolve(a);
+    if (/\.(md|markdown|txt)$/i.test(a) && fs.existsSync(a)) return path.resolve(a);
   }
   return null;
 }
@@ -67,6 +67,24 @@ function saveSettings(patch) {
     fs.writeFileSync(settingsPath(), JSON.stringify(merged, null, 2));
   } catch { /* 设置写入失败静默 */ }
   return merged;
+}
+
+
+/* ---------- 书架（可管理：分类文件夹 + 关联文件） ---------- */
+const shelfRoot = () => path.join(app.getPath('userData'), 'shelf');
+function shelfMetaPath() { return path.join(shelfRoot(), 'shelf.json'); }
+function loadShelfData() {
+  try {
+    const d = JSON.parse(fs.readFileSync(shelfMetaPath(), 'utf8'));
+    if (Array.isArray(d.folders)) return d;
+  } catch {}
+  // 迁移旧版单目录书架
+  const legacy = loadShelf();
+  return { folders: legacy ? [{ id: 'f' + Date.now(), name: '我的书架', files: [] }] : [] };
+}
+function saveShelfData(d) {
+  fs.mkdirSync(shelfRoot(), { recursive: true });
+  fs.writeFileSync(shelfMetaPath(), JSON.stringify(d, null, 2));
 }
 
 /* ---------- 窗口 ---------- */
@@ -151,7 +169,7 @@ function registerIpc() {
     const entries = await fsp.readdir(dir, { withFileTypes: true });
     const out = [];
     for (const e of entries) {
-      if (e.isFile() && /\.(md|markdown)$/i.test(e.name)) {
+      if (e.isFile() && /\.(md|markdown|txt)$/i.test(e.name)) {
         const full = path.join(dir, e.name);
         const st = await fsp.stat(full).catch(() => null);
         out.push({ name: e.name, path: full, mtime: st ? st.mtimeMs : 0 });
@@ -225,13 +243,76 @@ function registerIpc() {
       fsp.unlink(tmp).catch(() => {});
     }
   });
+
+  ipcMain.handle('shelf:data', () => loadShelfData());
+  ipcMain.handle('shelf:folder-add', (_e, name) => {
+    const d = loadShelfData();
+    const id = 'f' + Date.now();
+    d.folders.push({ id, name: String(name).slice(0, 40), files: [] });
+    saveShelfData(d);
+    return id;
+  });
+  ipcMain.handle('shelf:folder-rename', (_e, id, name) => {
+    const d = loadShelfData();
+    const f = d.folders.find(x => x.id === id);
+    if (f) f.name = String(name).slice(0, 40);
+    saveShelfData(d);
+    return true;
+  });
+  ipcMain.handle('shelf:folder-remove', (_e, id) => {
+    const d = loadShelfData();
+    d.folders = d.folders.filter(x => x.id !== id);
+    saveShelfData(d);
+    return true;
+  });
+  ipcMain.handle('shelf:file-add', (_e, id, p) => {
+    const d = loadShelfData();
+    const f = d.folders.find(x => x.id === id);
+    if (!f) return false;
+    const rp = path.resolve(String(p));
+    if (!f.files.some(x => path.resolve(x.path) === rp)) {
+      f.files.push({ path: rp, name: path.basename(rp) });
+    }
+    saveShelfData(d);
+    return true;
+  });
+  ipcMain.handle('shelf:file-remove', (_e, id, p) => {
+    const d = loadShelfData();
+    const f = d.folders.find(x => x.id === id);
+    if (f) f.files = f.files.filter(x => path.resolve(x.path) !== path.resolve(String(p)));
+    saveShelfData(d);
+    return true;
+  });
+  ipcMain.handle('shelf:read-files', async (_e, paths) => {
+    const out = [];
+    for (const p of paths) {
+      try {
+        const rp = path.resolve(String(p));
+        const st = await fsp.stat(rp);
+        if (st.isFile() && /\.(md|markdown|txt)$/i.test(rp)) {
+          out.push({ name: path.basename(rp), path: rp, mtime: st.mtimeMs });
+        }
+      } catch {}
+    }
+    return out;
+  });
+  ipcMain.handle('doc:create', async (_e, name, dir) => {
+    // 新建 md：写入目标目录（默认「文档」），重名自动加序号
+    let target = path.join(dir || app.getPath('documents'), name);
+    const ext = path.extname(name) || '.md';
+    const base = target.slice(0, -ext.length);
+    let i = 1;
+    while (fs.existsSync(target)) target = `${base}-${i++}${ext}`;
+    await fsp.writeFile(target, `# ${path.basename(target, ext)}\n\n`, 'utf8');
+    return target;
+  });
   ipcMain.handle('shelf:get', () => loadShelf());
   ipcMain.handle('shelf:set', (_e, dir) => { saveShelf(dir); return true; });
 
   ipcMain.handle('sys:open-file-dialog', async () => {
     const r = await dialog.showOpenDialog(win, {
       properties: ['openFile'],
-      filters: [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
+      filters: [{ name: 'Markdown / Text', extensions: ['md', 'markdown', 'txt'] }],
     });
     if (r.canceled || !r.filePaths[0]) return null;
     const p = r.filePaths[0];

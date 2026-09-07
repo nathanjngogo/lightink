@@ -134,6 +134,17 @@ body.side-hidden #sidebar{transform:translateX(-102%)}
 .tree-folder{display:flex;align-items:center;gap:6px;padding:7px 9px 3px;font-size:11.5px;color:var(--muted);letter-spacing:.4px}
 .tree-item .meta{margin-left:auto;font-size:11px;color:var(--muted)}
 .side-empty{color:var(--muted);font-size:12.5px;text-align:center;padding:28px 12px;line-height:1.8}
+/* ===== 书架 v2 ===== */
+.shelf-bar{display:flex;gap:6px;padding:4px 2px 8px}
+.shelf-btn{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--border);background:var(--bg);transition:all .12s}
+.shelf-btn:hover{border-color:var(--accent);color:var(--accent)}
+.shelf-folder{gap:2px}
+.shelf-folder .tree-folder-label{flex:1}
+.shelf-file-row{display:flex;align-items:center;gap:2px;padding-right:2px}
+.shelf-file-row .tree-item{padding:5px 6px 5px 9px}
+.shelf-file-row .shelf-btn{border:none;background:none;opacity:0;transition:opacity .12s}
+.shelf-file-row:hover .shelf-btn{opacity:1}
+.shelf-file-row .shelf-btn:hover{color:#c42b1c}
 /* ============ Content ============ */
 #content{position:absolute;top:0;bottom:0;left:0;right:0;min-width:0;overflow:hidden;transition:left .2s ease}
 body:not(.side-hidden) #content{left:var(--sidebar-w)}
@@ -314,6 +325,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <nav id="toolbar">
   <button class="tbtn" id="btnSidebar" title="侧栏">
     <svg class="ic" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M8 4v12"/></svg>
+  </button>
+  <button class="tbtn" id="btnNewDoc" title="新建 Markdown 文档">
+    <svg class="ic" viewBox="0 0 20 20"><path d="M11 3H6a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V7z"/><path d="M11 3v4h4M10 11v4M8 13h4"/></svg>
+    <span>新建</span>
   </button>
   <div class="seg" id="modeSeg">
     <button data-m="read">阅读</button>
@@ -610,7 +625,7 @@ mdrMdReady();
 const docs = { demo:$('#doc-demo').textContent.trim(), readme:$('#doc-readme').textContent.trim(), notes:$('#doc-notes').textContent.trim() };
 const docNameOf = { demo:'功能演示.md', readme:'README示例.md', notes:'会议笔记.md' };
 const LS = { theme:'mdr:theme', set:'mdr:settings', doc:id=>'mdr:doc:'+id };
-let crepe=null, mode='read', cur=null, saveTimer=null, outlineTimer=null;
+let crepe=null, mode='read', cur=null, saveTimer=null, outlineTimer=null, dirtyGuard=false;
 const settings = Object.assign({ fs:17, lh:1.9, mw:44, autosave:true }, JSON.parse(localStorage.getItem(LS.set)||'{}'));
 
 /* ---------- 设置 ---------- */
@@ -657,6 +672,7 @@ async function mountEditor(md){
   buildOutline(); updateCount(cur.text);
 }
 function markDirty(){
+  dirtyGuard = !cur.path;   // 磁盘文件自动保存；无路径（新建未存）才需要守卫
   $('#docTitle').classList.add('modified');
   $('#stSave').textContent='编辑中…'; $('#stSave').classList.add('dirty');
   clearTimeout(saveTimer);
@@ -665,6 +681,7 @@ function markDirty(){
 async function saveNow(){
   try{
     if(cur.path && window.mdr?.isElectron){
+      dirtyGuard = false;
       await window.mdr.writeFile(cur.path, cur.text);
       $('#stSave').textContent='已保存到文件 '+new Date().toLocaleTimeString('zh-CN',{hour12:false});
     } else if(cur.handle){ const w=await cur.handle.createWritable(); await w.write(cur.text); await w.close();
@@ -754,6 +771,23 @@ async function openPath(p){
 }
 window.__openPath = openPath;
 
+/* ===== 新建文档 ===== */
+async function createNewDoc(){
+  const name = prompt('文档名称：', '新建文档.md');
+  if(!name) return;
+  const finalName = /\.(md|markdown|txt)$/i.test(name) ? name : name + '.md';
+  try{
+    const target = await window.mdr.docCreate(finalName);
+    await openPath(target);
+    setMode('edit');           // 新文档直接进入编辑
+    toast('已创建：' + target.split(/[\\/]/).pop());
+  }catch(e){ errPush('创建失败：'+(e.message||e)); }
+}
+window.__createNewDoc = createNewDoc;
+
+/* ===== 关闭文档守卫：未保存更改 → 弹窗问保存位置/改名 ===== */
+
+
 async function pickFile(){
   if(window.mdr?.isElectron){
     const p = await window.mdr.openFileDialog();
@@ -766,24 +800,79 @@ async function pickFile(){
     const f=await h.getFile(); openDoc({id:'file:'+f.name,name:f.name,text:await f.text(),handle:h});
   }catch(e){ if(e.name!=='AbortError') errPush(e); }
 }
-function renderShelf(dir, files){
+/* ===== 书架 v2：可管理（新建/重命名/删除文件夹，文件添加/移除） ===== */
+function shelfHeaderBtn(title, svgPath, fn){
+  const b=document.createElement('button'); b.className='shelf-btn'; b.title=title;
+  b.innerHTML='<svg class="ic" viewBox="0 0 16 16" style="width:11px;height:11px">'+svgPath+'</svg>';
+  b.onclick=(e)=>{ e.stopPropagation(); fn(); };
+  return b;
+}
+const SVG_ADD='<path d="M8 3v10M3 8h10"/>';
+const SVG_EDIT='<path d="M11.5 2.5l2 2L6 12l-3 1 1-3z"/>';
+const SVG_TRASH='<path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 8.5h5.6l.7-8.5"/>';
+const SVG_LINK='<path d="M6.5 9.5l3-3M5 11a2.5 2.5 0 010-3.5l1.5-1.5M11 5a2.5 2.5 0 010 3.5L9.5 10"/>';
+
+async function renderShelfData(){
   const box=$('#realFiles'); box.innerHTML='';
-  const fb=document.createElement('div'); fb.className='tree-folder'; fb.textContent='📂 '+dir.split(/[\\/]/).pop()+'（'+files.length+' 个 .md）'; box.appendChild(fb);
-  if(!files.length){ const d=document.createElement('div'); d.className='side-empty'; d.textContent='该目录下没有 Markdown 文件'; box.appendChild(d); }
-  for(const f of files){
-    const b=document.createElement('button'); b.className='tree-item'; b.textContent=f.name;
-    b.onclick=()=>openPath(f.path);
-    box.appendChild(b);
+  const data = await window.mdr.shelfData();
+  // 顶部操作条：新建文件夹 / 添加现有文件到书架
+  const bar=document.createElement('div'); bar.className='shelf-bar';
+  bar.append(
+    shelfHeaderBtn('新建文件夹', SVG_ADD, async()=>{
+      const name = prompt('文件夹名称：'); if(!name) return;
+      await window.mdr.shelfFolderAdd(name.trim()); renderShelfData();
+    }),
+    shelfHeaderBtn('把当前打开的文档加入书架', SVG_LINK, async()=>{
+      if(!cur||!cur.path){ toast('先打开一个文档'); return; }
+      if(!data.folders.length){ await window.mdr.shelfFolderAdd('我的书架'); }
+      const d2 = await window.mdr.shelfData();
+      if(d2.folders.length===1){ await window.mdr.shelfFileAdd(d2.folders[0].id, cur.path); renderShelfData(); toast('已加入：'+d2.folders[0].name); return; }
+      const name = prompt('加入哪个文件夹？\n' + d2.folders.map((f,i)=>(i+1)+'. '+f.name).join('\n'));
+      const idx = parseInt(name,10)-1;
+      if(name && idx>=0 && idx<d2.folders.length){ await window.mdr.shelfFileAdd(d2.folders[idx].id, cur.path); renderShelfData(); toast('已加入：'+d2.folders[idx].name); }
+    })
+  );
+  box.appendChild(bar);
+  if(!data.folders.length){ const d=document.createElement('div'); d.className='side-empty'; d.textContent='书架还是空的\n点击上方 + 新建文件夹'; box.appendChild(d); }
+  for(const folder of data.folders){
+    const head=document.createElement('div'); head.className='tree-folder shelf-folder';
+    const label=document.createElement('span'); label.textContent='📁 '+folder.name+'（'+folder.files.length+'）'; label.style.flex='1';
+    head.append(label,
+      shelfHeaderBtn('重命名', SVG_EDIT, async()=>{
+        const name = prompt('重命名为：', folder.name); if(!name) return;
+        await window.mdr.shelfFolderRename(folder.id, name.trim()); renderShelfData();
+      }),
+      shelfHeaderBtn('删除文件夹', SVG_TRASH, async()=>{
+        if(!confirm('删除文件夹「'+folder.name+'」？（只移出书架，不删除文件）')) return;
+        await window.mdr.shelfFolderRemove(folder.id); renderShelfData();
+      }),
+      shelfHeaderBtn('添加文档到此文件夹', SVG_ADD, async()=>{
+        const p = await window.mdr.openFileDialog();
+        if(p){ await window.mdr.shelfFileAdd(folder.id, p); renderShelfData(); }
+      })
+    );
+    box.appendChild(head);
+    for(const f of folder.files){
+      const row=document.createElement('div'); row.className='shelf-file-row';
+      const b=document.createElement('button'); b.className='tree-item'; b.style.flex='1'; b.textContent=f.name;
+      b.onclick=()=>openPath(f.path);
+      const del=shelfHeaderBtn('从书架移除', SVG_TRASH, async()=>{
+        await window.mdr.shelfFileRemove(folder.id, f.path); renderShelfData();
+      });
+      row.append(b, del);
+      box.appendChild(row);
+    }
   }
   $$('.side-tabs button')[1].click();
 }
+window.__renderShelfData = renderShelfData;
 async function pickDir(){
   if(window.mdr?.isElectron){
     const dir = await window.mdr.openDirDialog();
     if(!dir) return;
     await window.mdr.setShelf(dir);
     const { files } = await window.mdr.listMd(dir);
-    renderShelf(dir, files);
+    renderShelfData();
     return;
   }
   if(!window.showDirectoryPicker){ toast('此环境不支持目录选择（Edge/Chrome 支持）'); return; }
@@ -1036,15 +1125,6 @@ $('#findPrev').onclick=()=>stepFind(-1);
 $('#findClose').onclick=closeFind;
 
 /* ---------- M2: 书架持久化 / 阅读位置 / 查找 / 导出 ---------- */
-async function restoreShelf(){
-  if(!window.mdr?.isElectron) return;
-  try{
-    const dir = await window.mdr.getShelf();
-    if(!dir) return;
-    const { files } = await window.mdr.listMd(dir);
-    renderShelf(dir, files);
-  }catch(e){ /* 目录失效时静默，等用户重新选择 */ }
-}
 let posTimer=null;
 function scheduleSavePos(){
   if(!cur||!cur.path||!window.mdr?.isElectron) return;
@@ -1089,7 +1169,6 @@ $('#btnExport').onclick=e=>{
 $('#expHtml').onclick=()=>doExport('html');
 $('#expPdf').onclick=()=>doExport('pdf');
 window.__buildExportHtml = buildExportHtml; // 测试钩子
-window.__closeDoc = closeDoc; // 测试钩子
 $('#btnCloseDoc').onclick=closeDoc;
 document.addEventListener('click',e=>{
   if(!e.target.closest('#exportMenu')&&!e.target.closest('#btnExport')) $('#exportMenu').classList.remove('show');
@@ -1110,6 +1189,23 @@ function closeDoc(){
   document.body.removeAttribute('data-doc-open');
 }
 
+/* ---------- 关闭守卫包装（须在 closeDoc 定义后） ---------- */
+const _closeDoc = closeDoc;
+closeDoc = function(){ if(dirtyGuard){ guardClose(); } else _closeDoc(); };
+async function guardClose(){
+  const name = prompt('文档有未保存的更改。\n保存为（含扩展名）：', cur.name || '未命名.md');
+  if(name === null){ return; }
+  if(name.trim() === ''){ toast('名称不能为空'); return; }
+  try{
+    const target = await window.mdr.docCreate(name.trim(), cur.path ? cur.path.replace(/[\\/][^\\/]+$/,'') : undefined);
+    await window.mdr.writeFile(target, cur.text);
+    dirtyGuard = false; _closeDoc();
+    toast('已保存：' + target.split(/[\\/]/).pop());
+  }catch(e){ errPush('保存失败：'+(e.message||e)); }
+}
+window.__closeDoc = closeDoc;
+window.__setDirtyGuard = v => { dirtyGuard = v; };
+
 /* ---------- 启动 ---------- */
 applySettings(); applyTheme();
 $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m==='read'));
@@ -1119,7 +1215,8 @@ if(window.mdr?.isElectron){
   loadRecentsUI();
   window.mdr.onOpenPath(openPath);
   $('#btnExport').hidden=false;
-  restoreShelf();
+  $('#btnNewDoc').onclick=createNewDoc;
+  restoreShelfData();
 }
 </script>
 </body>
