@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('mdr', {
   /* 最近文件 */
   listRecents: () => ipcRenderer.invoke('recents:list'),
   addRecent: (p, name) => ipcRenderer.invoke('recents:add', p, name),
+  removeRecent: (p) => ipcRenderer.invoke('recents:remove', p),
   clearRecents: () => ipcRenderer.invoke('recents:clear'),
 
   /* 设置与阅读位置 */

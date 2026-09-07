@@ -42,7 +42,8 @@ function saveRecents(list) {
 }
 function addRecent(p, name) {
   if (!p) return;
-  const list = loadRecents().filter(r => r.path !== p);
+  p = path.resolve(String(p));
+  const list = loadRecents().filter(r => path.resolve(r.path) !== p);
   list.unshift({ path: p, name, ts: Date.now() });
   saveRecents(list);
   app.addRecentDocument(p);
@@ -160,6 +161,11 @@ function registerIpc() {
   });
   ipcMain.handle('recents:list', () => loadRecents());
   ipcMain.handle('recents:add', (_e, p, name) => { addRecent(p, name); return true; });
+  ipcMain.handle('recents:remove', (_e, p) => {
+    const target = path.resolve(String(p));
+    saveRecents(loadRecents().filter(r => path.resolve(r.path) !== target));
+    return true;
+  });
   ipcMain.handle('recents:clear', () => { saveRecents([]); return true; });
 
   ipcMain.handle('settings:get', () => loadSettings());

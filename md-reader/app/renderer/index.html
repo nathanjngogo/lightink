@@ -191,6 +191,12 @@ body[data-mode="read"] [class*="slash"],body[data-mode="read"] [class*="link-too
 .w-item+.w-item{border-top:1px solid var(--border)}
 .w-item .ficon{width:30px;height:30px;border-radius:8px;background:var(--surface2);display:grid;place-items:center;color:var(--muted);flex:none}
 .w-item .name{font-size:13.5px;font-weight:600}
+.w-del{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;color:var(--muted);flex:none;opacity:0;transition:all .12s}
+.w-item:hover .w-del{opacity:1}
+.w-del:hover{background:rgba(196,43,28,.10);color:#c42b1c}
+.w-clear{font-size:11.5px;color:var(--muted);border:1px solid var(--border);border-radius:99px;padding:1px 10px;
+  background:var(--bg);transition:all .12s;letter-spacing:0}
+.w-clear:hover{border-color:#c42b1c;color:#c42b1c;background:rgba(196,43,28,.08)}
 .w-item .path{font-size:11.5px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .w-item .meta{margin-left:auto;font-size:11.5px;color:var(--muted);flex:none}
 .w-actions{display:flex;gap:10px;margin-top:18px}
@@ -354,24 +360,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
         <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存</p>
-        <div class="w-label">最近打开</div>
-        <div class="w-list" id="recentList">
-          <button class="w-item" data-doc="demo">
-            <span class="ficon"><svg class="ic" viewBox="0 0 20 20"><path d="M6 3h6l3 3v11H6z"/><path d="M12 3v3h3"/></svg></span>
-            <span><span class="name">功能演示.md</span><br><span class="path">D:\笔记\功能演示.md</span></span>
-            <span class="meta">今天 13:04</span>
-          </button>
-          <button class="w-item" data-doc="notes">
-            <span class="ficon"><svg class="ic" viewBox="0 0 20 20"><path d="M6 3h6l3 3v11H6z"/><path d="M12 3v3h3"/></svg></span>
-            <span><span class="name">会议笔记.md</span><br><span class="path">C:\Users\1\Documents\会议笔记.md</span></span>
-            <span class="meta">昨天 17:42</span>
-          </button>
-          <button class="w-item" data-doc="readme">
-            <span class="ficon"><svg class="ic" viewBox="0 0 20 20"><path d="M6 3h6l3 3v11H6z"/><path d="M12 3v3h3"/></svg></span>
-            <span><span class="name">README示例.md</span><br><span class="path">D:\项目\md-reader\README.md</span></span>
-            <span class="meta">8月30日</span>
-          </button>
+        <div class="w-label">最近打开
+          <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
+        <div class="w-list" id="recentList"></div>
         <div class="w-actions">
           <button class="w-btn primary" id="btnOpenFile">
             <svg class="ic" viewBox="0 0 20 20"><path d="M3 6a2 2 0 012-2h3l2 2h5a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
@@ -887,15 +879,26 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 async function loadRecentsUI(){
   const recents = await window.mdr.listRecents();
   const list = $('#recentList'); list.innerHTML='';
+  $('#btnClearRecents').hidden = !recents.length;
   if(!recents.length){ list.innerHTML='<div class="side-empty">暂无最近文件</div>'; return; }
   for(const r of recents){
-    const b=document.createElement('button'); b.className='w-item';
-    b.innerHTML=`<span class="ficon"><svg class="ic" viewBox="0 0 20 20"><path d="M6 3h6l3 3v11H6z"/><path d="M12 3v3h3"/></svg></span>
-      <span><span class="name">${esc(r.name)}</span><br><span class="path">${esc(r.path)}</span></span>`;
-    b.onclick=()=>openPath(r.path);
-    list.appendChild(b);
+    const row=document.createElement('div'); row.className='w-item'; row.style.cursor='default';
+    const open=document.createElement('button'); open.className='w-open'; open.style.cssText='display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left';
+    open.innerHTML=`<span class="ficon"><svg class="ic" viewBox="0 0 20 20"><path d="M6 3h6l3 3v11H6z"/><path d="M12 3v3h3"/></svg></span>
+      <span style="min-width:0"><span class="name">${esc(r.name)}</span><br><span class="path">${esc(r.path)}</span></span>`;
+    open.onclick=()=>openPath(r.path);
+    const del=document.createElement('button'); del.className='w-del'; del.title='从列表中移除';
+    del.innerHTML='<svg class="ic" viewBox="0 0 16 16" style="width:11px;height:11px"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
+    del.onclick=async(ev)=>{ ev.stopPropagation(); await window.mdr.removeRecent(r.path); loadRecentsUI(); };
+    row.append(open, del);
+    list.appendChild(row);
   }
 }
+$('#btnClearRecents').onclick=async()=>{
+  await window.mdr.clearRecents();
+  loadRecentsUI();
+  toast('已清除全部最近记录');
+};
 function wireWindowControls(){
   $('#btnMin').onclick=()=>window.mdr.winMin();
   $('#btnMax').onclick=()=>window.mdr.winMax();
