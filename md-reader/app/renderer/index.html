@@ -328,6 +328,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .dlg-btns.three .grp{display:flex;gap:10px}
 .dlg-btns button.danger-ghost{border-color:var(--border);color:var(--muted)}
 .dlg-btns button.danger-ghost:hover{border-color:#c42b1c;color:#c42b1c;background:rgba(196,43,28,.08)}
+.dlg-remember{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.dlg-remember input{accent-color:var(--accent)}
 .dlg-btns button:hover{filter:brightness(1.05)}
 </style>
 </head>
@@ -391,7 +393,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="pane" id="welcome">
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.5</span></p>
+        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.6</span></p>
         <div class="w-label">最近打开
           <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
@@ -689,6 +691,29 @@ function askCloseUnsaved(defaultName){
 }
 window.__askCloseUnsaved = askCloseUnsaved;
 
+/* 关闭主窗口对话框：最小化托盘 / 退出 */
+function askQuitDialog(){
+  return new Promise(resolve=>{
+    const dlg=$('#dlg'), input=$('#dlgInput'), msg=$('#dlgMsg'), dirRow=$('#dlgDirRow'), btns=$('#dlgBtns');
+    $('#dlgTitle').textContent='关闭 LightInk';
+    input.hidden=true; msg.hidden=false; dirRow.hidden=true;
+    msg.textContent='选择关闭后的行为：';
+    btns.className='dlg-btns three';
+    btns.innerHTML = '<button id="dlgCancel">取消</button>'
+      + '<span class="grp"><button id="dlgTray">最小化到托盘</button>'
+      + '<button id="dlgQuit" class="primary">退出</button></span>';
+    msg.insertAdjacentHTML('afterend','<label class="dlg-remember"><input type="checkbox" id="dlgRemember">记住我的选择，下次不再询问</label>');
+    dlg.classList.add('show');
+    const finish=v=>{ dlg.classList.remove('show');
+      document.querySelector('#dlgRemember')?.parentElement.remove();
+      btns.className='dlg-btns'; resolve(v); };
+    $('#dlgCancel').onclick=()=>finish('cancel');
+    $('#dlgTray').onclick=()=>finish({choice:'tray', remember:$('#dlgRemember').checked});
+    $('#dlgQuit').onclick=()=>finish({choice:'exit', remember:$('#dlgRemember').checked});
+  });
+}
+window.__askQuitDialog = askQuitDialog;
+
 /* ===== 冷启动文件关联：尽早注册 open-path（Crepe 异步加载不阻塞） ===== */
 var __pendingOpenPath = null;
 if (window.mdr?.isElectron) {
@@ -871,6 +896,14 @@ async function openPath(p){
   }catch(e){ errPush('打开失败：'+(e.message||e)); }
 }
 window.__openPath = openPath;
+// 主进程 close 拦截 → 关闭行为对话框（顶部注册，防初始化竞态丢消息）
+if (window.mdr?.onCloseAsk) {
+  window.mdr.onCloseAsk(async () => {
+    const v = await askQuitDialog();
+    if (v === 'cancel') return;
+    await window.mdr.closeChoice(v.choice, v.remember);
+  });
+}
 
 /* ===== 新建文档 ===== */
 async function createNewDoc(){

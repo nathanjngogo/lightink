@@ -1,5 +1,5 @@
 // MD 阅读器 — Electron 主进程
-const { app, BrowserWindow, ipcMain, shell, dialog, protocol, net } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, protocol, net , Tray, Menu } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const fsp = fs.promises;
@@ -68,7 +68,7 @@ function pickFileArg(argv) {
 /* ---------- 设置（书架目录等，userData/settings.json） ---------- */
 const settingsPath = () => path.join(app.getPath('userData'), 'settings.json');
 function loadSettings() {
-  try { return JSON.parse(fs.readFileSync(settingsPath(), 'utf8')); } catch { return {}; }
+  try { return Object.assign({ closeAction: 'ask' }, JSON.parse(fs.readFileSync(settingsPath(), 'utf8'))); } catch { return { closeAction: 'ask' }; }
 }
 function saveSettings(patch) {
   const merged = Object.assign(loadSettings(), patch);
@@ -99,6 +99,7 @@ function saveShelfData(d) {
 
 /* ---------- 窗口 ---------- */
 let win = null;
+let tray = null;
 function createWindow(startFile) {
   win = new BrowserWindow({
     width: 1280, height: 840, minWidth: 860, minHeight: 600,
@@ -112,6 +113,14 @@ function createWindow(startFile) {
       sandbox: false,           // preload 需要走 IPC 桥
       spellcheck: false,
     },
+  });
+  win.on('close', (e) => {
+    if (app.quitting) return;              // 真退出：放行
+    const act = loadSettings().closeAction;
+    if (act === 'exit') return;            // 用户选过「退出」：放行
+    e.preventDefault();
+    if (act === 'tray') { win.hide(); return; }
+    win.webContents.send('win:close-ask'); // 默认 ask：渲染层弹三选对话框
   });
 
   win.once('ready-to-show', () => win.show());
@@ -352,6 +361,16 @@ function registerIpc() {
   ipcMain.handle('win:minimize', () => win && win.minimize());
   ipcMain.handle('win:maximize', () => { if (win) win.isMaximized() ? win.unmaximize() : win.maximize(); });
   ipcMain.handle('win:close', () => win && win.close());
+ipcMain.handle('win:is-hidden', () => { const w = BrowserWindow.getAllWindows()[0]; return w ? w.isVisible() === false : false; });
+ipcMain.handle('win:tray-show', () => { const w = BrowserWindow.getAllWindows()[0]; if (w) { w.show(); w.focus(); } return true; });
+ipcMain.handle('win:close-choice', (_e, choice, remember) => {
+  if (choice === 'cancel') return 'stayed';
+  if (remember) saveSettings({ closeAction: choice });   // 'tray' | 'exit'
+  const w = BrowserWindow.getAllWindows()[0];
+  if (!w) return 'gone';
+  if (choice === 'tray') { w.hide(); return 'hidden'; }
+  app.quitting = true; app.quit(); return 'quitting';
+});
   ipcMain.handle('win:is-max', () => (win ? win.isMaximized() : false));
 }
 
@@ -372,5 +391,20 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+
+  // 常驻托盘
+  const { nativeImage } = require('electron');
+  const trayIcon = nativeImage.createFromPath(path.join(__dirname, 'renderer', 'assets', 'tray.png'));
+  tray = new Tray(trayIcon);
+  tray.setToolTip('LightInk 轻墨');
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: '显示主窗口', click: () => { const w = BrowserWindow.getAllWindows()[0]; if (w) { w.show(); w.focus(); } else createWindow(); } },
+    { label: '退出 LightInk', click: () => { app.quitting = true; app.quit(); } },
+  ]));
+  tray.on('double-click', () => { const w = BrowserWindow.getAllWindows()[0]; if (w) { w.show(); w.focus(); } });
 });
-app.on('window-all-closed', () => app.quit());
+app.on('before-quit', () => { app.quitting = true; });
+app.on('window-all-closed', () => {
+  // 托盘常驻：窗口全关（隐藏也算）不退出；仅真退出链路走 before-quit
+  if (app.quitting) app.quit();
+});

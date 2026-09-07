@@ -44,6 +44,10 @@ contextBridge.exposeInMainWorld('mdr', {
   winMin: () => ipcRenderer.invoke('win:minimize'),
   winMax: () => ipcRenderer.invoke('win:maximize'),
   winClose: () => ipcRenderer.invoke('win:close'),
+  onCloseAsk: (fn) => ipcRenderer.on('win:close-ask', () => fn()),
+  closeChoice: (choice, remember) => ipcRenderer.invoke('win:close-choice', choice, remember),
+  winIsHidden: () => ipcRenderer.invoke('win:is-hidden'),
+  trayShow: () => ipcRenderer.invoke('win:tray-show'),
   winIsMax: () => ipcRenderer.invoke('win:is-max'),
   onMaxChange: (fn) => ipcRenderer.on('win:maximized', (_e, v) => fn(v)),
   onOpenPath: (fn) => {
