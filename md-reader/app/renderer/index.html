@@ -145,6 +145,8 @@ body.side-hidden #sidebar{transform:translateX(-102%)}
 .shelf-file-row .shelf-btn{border:none;background:none;opacity:0;transition:opacity .12s}
 .shelf-file-row:hover .shelf-btn{opacity:1}
 .shelf-file-row .shelf-btn:hover{color:#c42b1c}
+.shelf-folder .shelf-btn{opacity:.75}
+.shelf-folder:hover .shelf-btn{opacity:1}
 /* ============ Content ============ */
 #content{position:absolute;top:0;bottom:0;left:0;right:0;min-width:0;overflow:hidden;transition:left .2s ease}
 body:not(.side-hidden) #content{left:var(--sidebar-w)}
@@ -306,6 +308,20 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 #exportMenu button{height:32px;padding:0 12px;border-radius:6px;font-size:13px;text-align:left;display:flex;gap:8px;align-items:center;color:var(--ink)}
 #exportMenu button:hover{background:var(--accent-soft);color:var(--accent)}
 #exportMenu button:disabled{opacity:.4;cursor:default}
+/* ===== 应用内 prompt/confirm 对话框 ===== */
+#dlg{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(10,12,11,.35)}
+#dlg.show{display:flex}
+.dlg-box{width:min(400px,86vw);background:var(--glass-strong);-webkit-backdrop-filter:blur(24px) saturate(1.5);backdrop-filter:blur(24px) saturate(1.5);
+  border:1px solid var(--glass-border);border-radius:var(--r-lg);box-shadow:var(--shadow-2);padding:20px 22px}
+.dlg-title{font-size:14.5px;font-weight:700;margin-bottom:14px}
+#dlgInput{width:100%;height:36px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--ink);
+  padding:0 12px;font:13.5px var(--font);outline:none}
+#dlgInput:focus{border-color:var(--accent)}
+.dlg-msg{font-size:13.5px;color:var(--muted);line-height:1.7;white-space:pre-line}
+.dlg-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.dlg-btns button{height:32px;padding:0 18px;border-radius:8px;font-size:13px;border:1px solid var(--border);color:var(--ink);background:var(--surface)}
+.dlg-btns button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.dlg-btns button:hover{filter:brightness(1.05)}
 </style>
 </head>
 <body data-mode="read">
@@ -460,6 +476,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <button id="expHtml">导出 HTML…</button>
   <button id="expPdf">导出 PDF…</button>
 </div>
+<div id="dlg"><div class="dlg-box">
+  <div class="dlg-title" id="dlgTitle">输入</div>
+  <input id="dlgInput" hidden>
+  <div class="dlg-msg" id="dlgMsg" hidden></div>
+  <div class="dlg-btns"><button id="dlgCancel">取消</button><button id="dlgOk" class="primary">确定</button></div>
+</div></div>
 <div id="toast"></div>
 
 <!-- 查找条 -->
@@ -605,6 +627,32 @@ const errPush = m => { window.__errors.push(String(m)); const b=$('#banner'); b.
 window.addEventListener('error', e => errPush(e.message));
 window.addEventListener('unhandledrejection', e => errPush(e.reason));
 const toast = m => { const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),1600); };
+
+/* ===== 应用内 prompt/confirm（Electron 禁用原生弹窗） ===== */
+function askText(title, defaultValue=''){
+  return new Promise(resolve=>{
+    const dlg=$('#dlg'), input=$('#dlgInput'), msg=$('#dlgMsg');
+    $('#dlgTitle').textContent=title;
+    input.hidden=false; msg.hidden=true; input.value=defaultValue;
+    dlg.classList.add('show');
+    setTimeout(()=>{ input.focus(); input.select(); },50);
+    const done=v=>{ dlg.classList.remove('show'); $('#dlgOk').onclick=null; input.onkeydown=null; resolve(v); };
+    $('#dlgOk').onclick=()=>done(input.value.trim());
+    input.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault(); done(input.value.trim());} else if(e.key==='Escape'){e.preventDefault(); done(null);} };
+  });
+}
+function askConfirm(title){
+  return new Promise(resolve=>{
+    const dlg=$('#dlg'), input=$('#dlgInput'), msg=$('#dlgMsg');
+    $('#dlgTitle').textContent=title;
+    input.hidden=true; msg.hidden=false; msg.textContent='';
+    dlg.classList.add('show');
+    const done=v=>{ dlg.classList.remove('show'); $('#dlgOk').onclick=null; resolve(v); };
+    $('#dlgOk').onclick=()=>done(true);
+    $('#dlgCancel').onclick=()=>done(false);
+  });
+}
+window.__askText = askText; window.__askConfirm = askConfirm;
 
 /* ---------- Crepe（本地 bundle → esm.sh 兜底） ---------- */
 let Crepe=null;
@@ -773,7 +821,7 @@ window.__openPath = openPath;
 
 /* ===== 新建文档 ===== */
 async function createNewDoc(){
-  const name = prompt('文档名称（关闭时再选择保存位置）：', '未命名.md');
+  const name = await askText('新建文档（关闭时再选择保存位置）', '未命名.md');
   if(!name) return;
   const finalName = /\.(md|markdown|txt)$/i.test(name) ? name : name + '.md';
   // 内存文档：不立即写盘，关闭时弹窗选择保存位置（guardClose 处理）
@@ -826,7 +874,7 @@ async function renderShelfData(){
   const bar=document.createElement('div'); bar.className='shelf-bar';
   bar.append(
     shelfHeaderBtn('新建文件夹', SVG_ADD, async()=>{
-      const name = prompt('文件夹名称：'); if(!name) return;
+      const name = await askText('新建文件夹'); if(!name) return;
       await window.mdr.shelfFolderAdd(name.trim()); renderShelfData();
     }),
     shelfHeaderBtn('把当前打开的文档加入书架', SVG_LINK, async()=>{
@@ -834,7 +882,7 @@ async function renderShelfData(){
       if(!data.folders.length){ await window.mdr.shelfFolderAdd('我的书架'); }
       const d2 = await window.mdr.shelfData();
       if(d2.folders.length===1){ await window.mdr.shelfFileAdd(d2.folders[0].id, cur.path); renderShelfData(); toast('已加入：'+d2.folders[0].name); return; }
-      const name = prompt('加入哪个文件夹？\n' + d2.folders.map((f,i)=>(i+1)+'. '+f.name).join('\n'));
+      const name = await askText('加入哪个文件夹？（输入序号）\n' + d2.folders.map((f,i)=>(i+1)+'. '+f.name).join('\n'));
       const idx = parseInt(name,10)-1;
       if(name && idx>=0 && idx<d2.folders.length){ await window.mdr.shelfFileAdd(d2.folders[idx].id, cur.path); renderShelfData(); toast('已加入：'+d2.folders[idx].name); }
     })
@@ -846,11 +894,11 @@ async function renderShelfData(){
     const label=document.createElement('span'); label.textContent='📁 '+folder.name+'（'+folder.files.length+'）'; label.style.flex='1';
     head.append(label,
       shelfHeaderBtn('重命名', SVG_EDIT, async()=>{
-        const name = prompt('重命名为：', folder.name); if(!name) return;
+        const name = await askText('重命名文件夹', folder.name); if(!name) return;
         await window.mdr.shelfFolderRename(folder.id, name.trim()); renderShelfData();
       }),
       shelfHeaderBtn('删除文件夹', SVG_TRASH, async()=>{
-        if(!confirm('删除文件夹「'+folder.name+'」？（只移出书架，不删除文件）')) return;
+        if(!(await askConfirm('删除文件夹「'+folder.name+'」？（只移出书架，不删除文件）'))) return;
         await window.mdr.shelfFolderRemove(folder.id); renderShelfData();
       }),
       shelfHeaderBtn('添加文档到此文件夹', SVG_ADD, async()=>{
@@ -1200,7 +1248,7 @@ function closeDoc(){
 const _closeDoc = closeDoc;
 closeDoc = function(){ if(dirtyGuard){ guardClose(); } else _closeDoc(); };
 async function guardClose(){
-  const name = prompt('文档有未保存的更改。\n保存为（含扩展名）：', cur.name || '未命名.md');
+  const name = await askText('文档有未保存的更改，保存为（含扩展名）：', cur.name || '未命名.md');
   if(name === null){ return; }
   if(name.trim() === ''){ toast('名称不能为空'); return; }
   try{
