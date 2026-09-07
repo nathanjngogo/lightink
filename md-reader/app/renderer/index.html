@@ -1224,7 +1224,6 @@ $('#btnExport').onclick=e=>{
 $('#expHtml').onclick=()=>doExport('html');
 $('#expPdf').onclick=()=>doExport('pdf');
 window.__buildExportHtml = buildExportHtml; // 测试钩子
-$('#btnCloseDoc').onclick=closeDoc;
 document.addEventListener('click',e=>{
   if(!e.target.closest('#exportMenu')&&!e.target.closest('#btnExport')) $('#exportMenu').classList.remove('show');
 });
@@ -1260,6 +1259,8 @@ async function guardClose(){
 }
 window.__closeDoc = closeDoc;
 window.__setDirtyGuard = v => { dirtyGuard = v; };
+window.__getDirtyGuard = () => dirtyGuard;
+$('#btnCloseDoc').onclick = closeDoc;
 
 /* ---------- 启动 ---------- */
 applySettings(); applyTheme();
