@@ -839,7 +839,7 @@ const commands=[
   { t:'查找（当前文档）', k:'Ctrl F', run:()=>{ if(cur) openFind(); } },
   { t:'导出 HTML', k:'', run:()=>doExport('html') },
   { t:'导出 PDF', k:'', run:()=>doExport('pdf') },
-  { t:'回到主页（关闭文档）', k:'', run:()=>{ document.body.removeAttribute('data-doc-open'); cur=null; $('#stSave').textContent='就绪'; $('#docTitle').innerHTML='未打开文档'; } },
+  { t:'回到主页（关闭文档）', k:'', run:()=>closeDoc() },
   { t:'侧栏显示/隐藏', k:'', run:()=>document.body.classList.toggle('side-hidden') },
 ];
 let palSel=0, palItems=[];
@@ -1078,9 +1078,24 @@ $('#btnExport').onclick=e=>{
 $('#expHtml').onclick=()=>doExport('html');
 $('#expPdf').onclick=()=>doExport('pdf');
 window.__buildExportHtml = buildExportHtml; // 测试钩子
+window.__closeDoc = closeDoc; // 测试钩子
 document.addEventListener('click',e=>{
   if(!e.target.closest('#exportMenu')&&!e.target.closest('#btnExport')) $('#exportMenu').classList.remove('show');
 });
+
+/* ---------- 关闭文档 / 回到主页：清理大纲、字数、保存态、销毁编辑器 ---------- */
+function closeDoc(){
+  clearTimeout(saveTimer); clearTimeout(outlineTimer); clearTimeout(posTimer);
+  if(crepe){ try{ crepe.destroy(); }catch(_){ } crepe=null; }
+  $('#editor').innerHTML='';
+  $('#outlinePane').innerHTML='<div class="side-empty">打开文档后<br>这里显示章节大纲</div>';
+  $('#stCount').textContent='';
+  $('#stSave').textContent='就绪'; $('#stSave').classList.remove('dirty');
+  $('#docTitle').innerHTML='未打开文档';
+  $('#docTitle').classList.remove('modified');
+  cur=null;
+  document.body.removeAttribute('data-doc-open');
+}
 
 /* ---------- 启动 ---------- */
 applySettings(); applyTheme();
