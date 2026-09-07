@@ -13,6 +13,7 @@ module.exports = {
     fileAssociations: [
       { ext: 'md', name: 'Markdown 文档', description: 'Markdown 文档', role: 'Editor' },
       { ext: 'markdown', name: 'Markdown 文档', description: 'Markdown 文档', role: 'Editor' },
+      { ext: 'txt', name: '文本文档', description: '文本文档', role: 'Editor' },
     ],
   },
   nsis: {
