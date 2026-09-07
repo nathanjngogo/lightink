@@ -80,9 +80,14 @@ svg.ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;str
 #titlebar .brand{display:flex;align-items:center;gap:8px;padding:0 12px;font-weight:600;font-size:13px;letter-spacing:.2px}
 #titlebar .brand .mark{width:18px;height:18px;border-radius:5px;background:var(--accent);color:var(--accent-ink);
   display:grid;place-items:center;font-size:10px;font-weight:800;font-family:var(--mono)}
-#docTitle{flex:1;text-align:center;font-size:12.5px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 8px}
+#docTitle{flex:1;text-align:center;font-size:12.5px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 8px;display:flex;align-items:center;justify-content:center;gap:8px}
 #docTitle .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-left:6px;vertical-align:1px;opacity:0;transition:opacity .15s}
 #docTitle.modified .dot{opacity:1}
+#btnCloseDoc{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;color:var(--muted);
+  border:1px solid var(--border);border-radius:99px;padding:2px 10px;background:var(--surface);
+  transition:all .12s;-webkit-app-region:no-drag}
+#btnCloseDoc:hover{border-color:#c42b1c;color:#c42b1c;background:rgba(196,43,28,.08)}
+#btnCloseDoc[hidden]{display:none}
 .win-controls{display:flex;height:100%}
 .win-controls button{width:44px;height:100%;display:grid;place-items:center;color:var(--muted);border-radius:0}
 .win-controls button:hover{background:var(--surface2);color:var(--ink)}
@@ -287,7 +292,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- 标题栏 -->
 <header id="titlebar">
   <div class="brand"><img src="brand.png" style="width:18px;height:18px;border-radius:5px" alt="">LightInk 轻墨</div>
-  <div id="docTitle">未打开文档<span class="dot"></span></div>
+  <div id="docTitle"><button id="btnCloseDoc" title="关闭文档" hidden><svg class="ic" viewBox="0 0 16 16" style="width:12px;height:12px"><path d="M4 4l8 8M12 4l-8 8"/></svg>关闭文档</button><span id="docTitleText">未打开文档</span><span class="dot"></span></div>
   <div class="win-controls">
     <button id="btnMin" title="最小化"><svg class="ic" viewBox="0 0 16 16" style="width:14px;height:14px"><path d="M3 8h10"/></svg></button>
     <button id="btnMax" title="最大化"><svg class="ic" viewBox="0 0 16 16" style="width:12px;height:12px"><rect x="3" y="3" width="10" height="10" rx="1"/></svg></button>
@@ -719,9 +724,8 @@ async function openDoc(o){
   const saved = useLocal ? localStorage.getItem(LS.doc(o.id)) : null;
   cur={ id:o.id, name:o.name||docNameOf[o.id]||o.id, text:saved??o.text, handle:o.handle||null, path:o.path||null };
   document.body.setAttribute('data-doc-open','1');
-  $('#docTitle').innerHTML='';
-  $('#docTitle').append(cur.name);
-  const dot=document.createElement('span'); dot.className='dot'; $('#docTitle').appendChild(dot);
+  $('#docTitleText').textContent=cur.name;
+  $('#btnCloseDoc').hidden=false;
   $('#docTitle').classList.remove('modified');
   $('#stSave').textContent=saved&&!o.handle?'已恢复本地修改':'就绪';
   // 文档默认以阅读模式打开（独立于上次模式）
@@ -1079,6 +1083,7 @@ $('#expHtml').onclick=()=>doExport('html');
 $('#expPdf').onclick=()=>doExport('pdf');
 window.__buildExportHtml = buildExportHtml; // 测试钩子
 window.__closeDoc = closeDoc; // 测试钩子
+$('#btnCloseDoc').onclick=closeDoc;
 document.addEventListener('click',e=>{
   if(!e.target.closest('#exportMenu')&&!e.target.closest('#btnExport')) $('#exportMenu').classList.remove('show');
 });
@@ -1091,7 +1096,8 @@ function closeDoc(){
   $('#outlinePane').innerHTML='<div class="side-empty">打开文档后<br>这里显示章节大纲</div>';
   $('#stCount').textContent='';
   $('#stSave').textContent='就绪'; $('#stSave').classList.remove('dirty');
-  $('#docTitle').innerHTML='未打开文档';
+  $('#docTitleText').textContent='未打开文档';
+  $('#btnCloseDoc').hidden=true;
   $('#docTitle').classList.remove('modified');
   cur=null;
   document.body.removeAttribute('data-doc-open');
