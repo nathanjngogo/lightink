@@ -1,0 +1,1 @@
+(() => ({ a: typeof window.__renderShelfData, b: typeof window.__createNewDoc, c: typeof window.__closeDoc, d: typeof window.__buildExportHtml }))()
