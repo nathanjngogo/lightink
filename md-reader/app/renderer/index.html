@@ -941,6 +941,7 @@ async function doExport(kind){
   const base = (cur.name || 'document').replace(/\.(md|markdown)$/i, '');
   if(!window.mdr?.isElectron){ toast('导出需在 LightInk 桌面版中使用'); return; }
   const target = await window.mdr.exportSaveDialog(base + (kind==='pdf'?'.pdf':'.html'), kind);
+  $('#exportMenu').classList.remove('show');
   if(!target) return;
   try{
     if(kind === 'pdf'){
@@ -1056,7 +1057,18 @@ async function restorePos(){
 $('#editorPane').addEventListener('scroll', scheduleSavePos, {passive:true});
 $('#sourcePane').addEventListener('scroll', scheduleSavePos, {passive:true});
 
-$('#btnExport').onclick=e=>{ e.stopPropagation(); $('#exportMenu').classList.toggle('show'); };
+$('#btnExport').onclick=e=>{
+  e.stopPropagation();
+  const menu=$('#exportMenu');
+  if(!menu.classList.contains('show')){
+    // 锚定到导出按钮正下方，右缘对齐按钮右缘
+    const r=$('#btnExport').getBoundingClientRect();
+    menu.style.top=Math.round(r.bottom+8)+'px';
+    menu.style.right=Math.round(window.innerWidth-r.right)+'px';
+    menu.style.left='auto';
+  }
+  menu.classList.toggle('show');
+};
 $('#expHtml').onclick=()=>doExport('html');
 $('#expPdf').onclick=()=>doExport('pdf');
 window.__buildExportHtml = buildExportHtml; // 测试钩子
