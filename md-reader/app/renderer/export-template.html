@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>导出</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<style>
+/* 打印/导出共用样式：纸感、中文排版 */
+:root{ --ink:#22262a; --muted:#71767c; --border:#e3e4de; --code:#f4f4ef; --accent:#177e6d; }
+body{margin:0;background:#fff;color:var(--ink);
+  font-family:-apple-system,"MiSans","HarmonyOS Sans SC","Microsoft YaHei UI","PingFang SC","Segoe UI",sans-serif;
+  font-size:12.5pt;line-height:1.9}
+.wrap{max-width:46em;margin:0 auto;padding:2em 1em}
+h1,h2,h3,h4{font-weight:700;line-height:1.4}
+h1{font-size:1.7em;margin:1em 0 .5em}
+h2{font-size:1.35em;margin:1.4em 0 .5em;border-bottom:1px solid var(--border);padding-bottom:.25em}
+h3{font-size:1.12em;margin:1.2em 0 .4em}
+p{text-wrap:pretty;margin:0 0 1em}
+blockquote{margin:1em 0;padding:.2em 0 .2em 1em;border-left:3px solid var(--accent);color:var(--muted)}
+code{font-family:"Cascadia Code",Consolas,monospace;font-size:.82em;background:var(--code);border:1px solid var(--border);border-radius:4px;padding:.08em .35em}
+pre{background:var(--code);border:1px solid var(--border);border-radius:8px;padding:1em;overflow:auto}
+pre code{border:none;background:none;padding:0;font-size:.85em;line-height:1.6}
+table{width:100%;border-collapse:collapse;margin:1.2em 0;font-size:.95em}
+th{background:#f6f6f2;font-weight:600}
+th,td{border:1px solid var(--border);padding:6px 10px;text-align:left}
+hr{border:none;border-top:1px solid var(--border);margin:2em 0}
+a{color:var(--accent);text-decoration:none}
+img{max-width:100%}
+.footnotes{font-size:.85em;color:var(--muted)}
+.footnotes hr{margin:1.5em 0 .8em}
+@media print{
+  .wrap{max-width:none;padding:0}
+  h2{break-after:avoid}
+  pre,table,blockquote{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="out"></div>
+</body>
+</html>
