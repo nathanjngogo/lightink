@@ -773,15 +773,22 @@ window.__openPath = openPath;
 
 /* ===== 新建文档 ===== */
 async function createNewDoc(){
-  const name = prompt('文档名称：', '新建文档.md');
+  const name = prompt('文档名称（关闭时再选择保存位置）：', '未命名.md');
   if(!name) return;
   const finalName = /\.(md|markdown|txt)$/i.test(name) ? name : name + '.md';
-  try{
-    const target = await window.mdr.docCreate(finalName);
-    await openPath(target);
-    setMode('edit');           // 新文档直接进入编辑
-    toast('已创建：' + target.split(/[\\/]/).pop());
-  }catch(e){ errPush('创建失败：'+(e.message||e)); }
+  // 内存文档：不立即写盘，关闭时弹窗选择保存位置（guardClose 处理）
+  cur = { id:'new:'+finalName, name: finalName, text: '# '+finalName.replace(/\.(md|markdown|txt)$/i,'')+'\n\n', handle:null, path:null, isNew:true };
+  document.body.setAttribute('data-doc-open','1');
+  $('#docTitleText').textContent = finalName;
+  $('#btnCloseDoc').hidden = false;
+  $('#docTitle').classList.remove('modified');
+  $('#stSave').textContent='未保存（新文档）';
+  mode='read';
+  document.body.dataset.mode='read';
+  $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m==='read'));
+  $('#stMode').textContent='阅读模式';
+  await mountEditor(cur.text);
+  setMode('edit');
 }
 window.__createNewDoc = createNewDoc;
 
