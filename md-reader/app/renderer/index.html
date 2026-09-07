@@ -795,6 +795,8 @@ async function openDoc(o){
   $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m==='read'));
   $('#stMode').textContent='阅读模式';
   await mountEditor(cur.text);
+  // 兜底：编辑器懒初始化等时序后，再次确保阅读态（对冲一切竞态）
+  requestAnimationFrame(()=>{ if(mode!=='read' && cur && document.body.dataset.mode!=='edit'){ mode='read'; document.body.dataset.mode='read'; if(crepe) try{crepe.setReadonly(true);}catch(_){}} });
   restorePos();
 }
 $$('.tree-item').forEach(b=>b.onclick=()=>openDoc({id:b.dataset.doc,text:docs[b.dataset.doc]}));
