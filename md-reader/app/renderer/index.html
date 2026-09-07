@@ -975,8 +975,8 @@ const palette=$('#palette'), palInput=$('#palInput'), palList=$('#palList');
 const commands=[
   { t:'打开文件', k:'Ctrl O', run:pickFile },
   { t:'打开文件夹（书架）', k:'', run:pickDir },
-  { t:'模式：所见即所得', k:'', run:()=>setMode('edit') },
   { t:'模式：阅读', k:'', run:()=>setMode('read') },
+  { t:'模式：编辑', k:'', run:()=>setMode('edit') },
   { t:'模式：源码', k:'', run:()=>setMode('source') },
   { t:'切换主题（自动→浅色→深色）', k:'', run:()=>$('#btnTheme').click() },
   { t:'打开设置', k:'', run:()=>showDrawer(true) },
