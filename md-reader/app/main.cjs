@@ -20,6 +20,7 @@ app.on('second-instance', (_e, argv) => {
   const win = BrowserWindow.getAllWindows()[0];
   if (!win) return;
   if (win.isMinimized()) win.restore();
+  if (!win.isVisible()) win.show();   // 托盘隐藏中：双击关联文件/再次启动 → 自动唤回界面
   win.focus();
   const file = pickFileArg(argv);
   if (file) {
