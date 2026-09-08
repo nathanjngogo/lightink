@@ -424,7 +424,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="pane" id="welcome">
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.9</span></p>
+        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.10</span></p>
         <div class="w-label">最近打开
           <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
@@ -1044,9 +1044,15 @@ async function pickDir(){
   if(window.mdr?.isElectron){
     const dir = await window.mdr.openDirDialog();
     if(!dir) return;
-    await window.mdr.setShelf(dir);
+    // 书架2.0：选目录 → 建同名文件夹并把目录下的 md/markdown/txt 全部加入
     const { files } = await window.mdr.listMd(dir);
+    const fname = dir.split(/[\\/]/).filter(Boolean).pop() || '导入书架';
+    const fid = await window.mdr.shelfFolderAdd(fname);
+    for(const f of (files||[])){
+      if (f && f.path) await window.mdr.shelfFileAdd(fid, f.path);
+    }
     renderShelfData();
+    toast('已导入 ' + (files||[]).length + ' 个文档到「' + fname + '」');
     return;
   }
   if(!window.showDirectoryPicker){ toast('此环境不支持目录选择（Edge/Chrome 支持）'); return; }
