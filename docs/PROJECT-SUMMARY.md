@@ -50,6 +50,11 @@
 ## 说明书
 - 三处同步: `docs/使用说明书.md`（仓库）+ `D:\Hermes Agent工作区\产出\LightInk 使用说明书.md` + `LightInk 说明书.html`
 
+## macOS 版（2026-09-08）
+- 独立文件夹 `lightink-macos/`（app + vendor-src + LICENSE/README + MAC-BUILD-GUIDE.md）
+- 平台适配：原生交通灯（自绘按钮隐藏/CSS data-platform=mac）、Cmd 快捷键显示（⌘替换）、open-file 事件接 Finder 打开、应用菜单(Cmd+Q/复制粘贴)、close 直关窗口驻留 Dock、fileAssociations 走 Info.plist、dmg+zip 双架构(arm64/x64)、ad-hoc 签名
+- 打包必须在 Mac 上执行：`npm install && npm run dist:mac`（Windows 无法打包 mac 安装包，Apple 工具链限制）
+
 ## 待办/已知
 - GitHub PAT（ghp_IB...）已完成使命，用户应吊销
 - 用户机 .md 关联若再被 Notion 抢占，需注册表指回 LightInk
