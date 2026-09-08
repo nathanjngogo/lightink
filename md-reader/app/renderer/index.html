@@ -393,7 +393,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="pane" id="welcome">
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.6</span></p>
+        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.7</span></p>
         <div class="w-label">最近打开
           <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
@@ -644,8 +644,9 @@ function askText(title, defaultValue=''){
     input.hidden=false; msg.hidden=true; input.value=defaultValue;
     dlg.classList.add('show');
     setTimeout(()=>{ input.focus(); input.select(); },50);
-    const done=v=>{ dlg.classList.remove('show'); $('#dlgOk').onclick=null; input.onkeydown=null; resolve(v); };
+    const done=v=>{ dlg.classList.remove('show'); $('#dlgOk').onclick=null; $('#dlgCancel').onclick=null; input.onkeydown=null; resolve(v); };
     $('#dlgOk').onclick=()=>done(input.value.trim());
+    $('#dlgCancel').onclick=()=>done(null);
     input.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault(); done(input.value.trim());} else if(e.key==='Escape'){e.preventDefault(); done(null);} };
   });
 }
@@ -655,7 +656,7 @@ function askConfirm(title){
     $('#dlgTitle').textContent=title;
     input.hidden=true; msg.hidden=false; msg.textContent='';
     dlg.classList.add('show');
-    const done=v=>{ dlg.classList.remove('show'); $('#dlgOk').onclick=null; resolve(v); };
+    const done=v=>{ dlg.classList.remove('show'); $('#dlgOk').onclick=null; $('#dlgCancel').onclick=null; resolve(v); };
     $('#dlgOk').onclick=()=>done(true);
     $('#dlgCancel').onclick=()=>done(false);
   });
