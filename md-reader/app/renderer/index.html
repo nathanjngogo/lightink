@@ -28,6 +28,7 @@
 }
 html[data-theme="dark"]{
   --bg:#1a1c1d; --surface:#212425; --surface2:#2a2d2f; --ink:#d8dad6; --muted:#8b9094;
+  --edit-bg:#202324;
   --border:#2e3234; --border-strong:#3c4144;
   --accent:#4cc2ae; --accent-ink:#10221e; --accent-soft:rgba(76,194,174,.12);
   --code-bg:#222627; --sel:rgba(76,194,174,.22);
@@ -153,18 +154,28 @@ body:not(.side-hidden) #content{left:var(--sidebar-w)}
 .pane{position:absolute;inset:0;overflow:auto}
 /* A4 纸面模式（新建文档）：编辑区呈现 A4 纸张，超出后无限向下延伸 */
 #editorWrap.a4-paper{
+  --a4-bg:#ffffff; --a4-ink:#22262a;        /* 浅色主题：纸白 */
+  --a4-code:#f4f4ef; --a4-th:#f5f5f1;
   max-width:794px; width:794px;
   margin:calc(var(--title-h) + var(--toolbar-h) + 36px) auto calc(var(--status-h) + 60px);
   padding:96px 90px 120px;                 /* 纸内边距 ≈ A4 页边距 */
-  background:#ffffff;
-  color:#22262a;
+  background:var(--a4-bg);
+  color:var(--a4-ink);
   box-shadow:0 1px 3px rgba(0,0,0,.10), 0 8px 32px rgba(0,0,0,.12);
   border-radius:2px;
   min-height:1123px;                        /* 一整页 A4 高度 */
 }
 #editorWrap.a4-paper .ProseMirror{min-height:907px}  /* 纸内正文区至少撑满一页 */
-:root[data-theme="dark"] #editorWrap.a4-paper,
-body[data-theme="dark"] #editorWrap.a4-paper{ box-shadow:0 1px 3px rgba(0,0,0,.45), 0 8px 32px rgba(0,0,0,.5) }
+/* 深色主题（显式 dark 与 auto+系统深色）：纸面统一深色，与编辑模式背景一致 */
+html[data-theme="dark"] #editorWrap.a4-paper{ --a4-bg:#202324; --a4-ink:#d8dad6; --a4-code:#222627; --a4-th:#26292b }
+@media (prefers-color-scheme: dark){
+  html[data-theme="auto"] #editorWrap.a4-paper{ --a4-bg:#202324; --a4-ink:#d8dad6; --a4-code:#222627; --a4-th:#26292b }
+}
+html[data-theme="dark"] #editorWrap.a4-paper,
+html[data-theme="auto"] #editorWrap.a4-paper{
+  box-shadow:0 1px 3px rgba(0,0,0,.45), 0 8px 32px rgba(0,0,0,.5);
+  border:1px solid var(--border);
+}
 @media print{ #editorWrap.a4-paper{box-shadow:none;margin:0} }
 #editorWrap{max-width:var(--measure);margin:0 auto;padding:calc(var(--title-h) + var(--toolbar-h) + 44px) 40px calc(var(--status-h) + 20vh);font-size:var(--fs);line-height:var(--lh);
   transition:max-width .2s,font-size .15s}
@@ -183,6 +194,11 @@ body[data-theme="dark"] #editorWrap.a4-paper{ box-shadow:0 1px 3px rgba(0,0,0,.4
 #editorWrap pre{background:var(--code-bg)!important;border:1px solid var(--border);border-radius:var(--r-md)}
 #editorWrap table{width:100%;border-collapse:collapse;margin:1.2em 0;font-size:.94em}
 #editorWrap th{background:var(--surface);font-weight:600}
+/* A4 纸面内：代码块/表格底色跟随纸面主题（避免深色主题下纸内出现浅色块） */
+#editorWrap.a4-paper pre{background:var(--a4-code)!important}
+#editorWrap.a4-paper th{background:var(--a4-th)}
+#editorWrap.a4-paper tr:hover td{background:transparent}
+#editorWrap.a4-paper mark{background:rgba(76,194,174,.28)}
 #editorWrap th,#editorWrap td{border:1px solid var(--border);padding:7px 12px;text-align:left}
 #editorWrap tr:hover td{background:var(--accent-soft)}
 #editorWrap hr{border:none;border-top:1px solid var(--border);margin:2em auto;width:100%}
@@ -408,7 +424,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="pane" id="welcome">
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.8</span></p>
+        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.9</span></p>
         <div class="w-label">最近打开
           <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
