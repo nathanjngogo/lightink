@@ -1,62 +1,77 @@
-# LightInk 轻墨
-
 <p align="center">
-  <img src="app/build/icon.png" width="128" alt="LightInk 图标">
+  <img src="app/build/icon.png" width="128" alt="LightInk">
 </p>
 
-**本地 Markdown 编辑器 + 阅读器** · 所见即所得 · 自动保存 · 离线可用，数据不出本机。
+<h1 align="center">LightInk</h1>
 
-![平台](https://img.shields.io/badge/Windows-10%2F11-blue) ![Electron](https://img.shields.io/badge/Electron-33-47848F) ![Milkdown](https://img.shields.io/badge/Milkdown-Crepe-e91e63) ![License](https://img.shields.io/badge/License-MIT-green)
+<p align="center">
+  <strong>A local-first Markdown editor & reader for Windows</strong><br>
+  WYSIWYG editing · Auto-save · Works fully offline · Your data never leaves your machine
+</p>
 
-## 特性
+<p align="center">
+  <a href="#features"><img alt="Features" src="https://img.shields.io/badge/features-12%2B-177e6d"></a>
+  <img alt="Platform" src="https://img.shields.io/badge/Windows-10%2F11-blue">
+  <img alt="Electron" src="https://img.shields.io/badge/Electron-33-47848F">
+  <img alt="Milkdown" src="https://img.shields.io/badge/Milkdown-Crepe-e91e63">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-green">
+</p>
 
-- **三种模式**：阅读（默认打开即读）→ 编辑（所见即所得）→ 源码，一键切换
-- **书架管理**：自定义分类文件夹（新建/重命名/删除），文件可自由加入/移除
-- **新建文档**：应用内创建 Markdown，关闭时引导保存命名
-- **txt 支持**：`.md` / `.markdown` / `.txt` 全部关联打开
-- **自动保存**：停止输入 0.9 秒自动写回原文件，`Ctrl+S` 随时可用
-- **阅读位置记忆**：每个文件的滚动位置都会被记住，重开自动回到原处
-- **文内查找**：`Ctrl+F`，CSS Custom Highlight API 高亮，不打断排版
-- **导出**：HTML（自包含单文件，KaTeX 字体与图片全内联）/ PDF（A4）
-- **书架与最近文件**：固定文库目录 + 最近 12 条记录，启动自动恢复
-- **中文排版优先**：字号 / 行距 / 版心可调，限宽版心
-- **完整语法**：GFM 全要素 + KaTeX 数学公式 + Mermaid 图表 + 代码高亮
-- **毛玻璃 UI**：亮 / 暗 / 跟随系统三态主题，编辑模式淡灰底色区分
+---
 
-## 安装
+## Why LightInk?
 
-从 [Releases](../../releases) 下载 `LightInk-Setup-1.0.0.exe` 双击安装（无需管理员权限）。安装后双击任意 `.md` 文件即可打开。
+Most Markdown apps force you to choose between a plain text editor and a heavyweight note database. LightInk takes the third path: **double-click any `.md` file on your disk and read it like a document, edit it like a page.** No account, no cloud, no index — just your files.
 
-> 安装包未做数字签名，SmartScreen 提示时选「更多信息 → 仍要运行」。
+## Features
 
-## 开发
+- **Three modes** — Read (opens in read mode by default) → Edit (WYSIWYG) → Source, switch with one click
+- **A4 paper canvas** — New documents open on a true A4 page (210×297mm). Content taller than one page flows endlessly; paste a wide table or code block and the page **widens to fit**, then shrinks back when it's gone
+- **Bookshelf** — Organize documents into custom folders (create / rename / delete), or one-click import an entire disk folder
+- **New from scratch** — Create Markdown in-app; on close, pick the filename and save location (full path, editable, auto-creates missing folders)
+- **Auto-save** — Writes back to the original file 0.9s after you stop typing; `Ctrl+S` anytime
+- **Reading position memory** — Every file remembers where you stopped; reopening restores your scroll position
+- **In-document search** — `Ctrl+F` with instant highlight via the CSS Custom Highlight API
+- **Export** — Self-contained HTML (inline styles, KaTeX fonts and images) or print-ready PDF
+- **Full syntax** — GFM, KaTeX math, Mermaid diagrams, code highlighting, footnotes, task lists
+- **System tray** — Close to tray and keep it running in the background; double-click any associated file to bring the window back
+- **Dark mode** — Light / dark / follow-system, with a unified dark editing canvas
+- **Fully offline** — All editor assets are vendored; clone and run without internet
+
+## Install
+
+Grab `LightInk-Setup-x.y.z.exe` from the [Releases](../../releases) page and run it — no admin rights needed. File associations for `.md` / `.markdown` / `.txt` are registered automatically, so double-clicking a Markdown file opens LightInk in reading mode.
+
+> The installer is unsigned. If Windows SmartScreen appears, click **More info → Run anyway**.
+
+## Development
 
 ```bash
-git clone https://github.com/<user>/lightink.git
+git clone https://github.com/nathanjngogo/lightink.git
 cd lightink/app
-npm install          # 国内网络已配置 .npmrc 走 npmmirror
-npm run dev          # 开发运行
-npm run dist         # 打包 NSIS 安装包
+npm install
+npm run dev     # run in development
+npm run dist    # build the NSIS installer
 ```
 
-编辑器渲染依赖已 vendored（`app/renderer/vendor/`），克隆即可离线运行；如需重新生成：
+Editor rendering dependencies are vendored (`app/renderer/vendor/`), so the repo runs offline out of the box. To rebuild the Milkdown Crepe bundle:
 
 ```bash
 cd vendor-src && npm install && npx esbuild node_modules/@milkdown/crepe/lib/esm/index.js --bundle --format=esm --platform=browser --outfile=../app/renderer/vendor/crepe.bundle.mjs
 ```
 
-## 目录结构
+## Project Layout
 
 ```
-app/                  Electron 应用（主进程 / preload / renderer）
-  build/              图标资源与生成脚本（gen-icon.cjs）
-  renderer/           UI（单 HTML，Milkdown Crepe vendored）
-vendor-src/           依赖源码打包（esbuild）
-prototype/            早期交互原型与 UI 设计稿
-tools/                CDP 实测脚本（无头 Edge/CEP 探针）与构建工具
-PRD-MD阅读器.md       产品需求文档（16 项决议归档）
+app/                  Electron app (main / preload / renderer)
+  build/              Icon assets & generator script (gen-icon.cjs)
+  renderer/           UI (single HTML, vendored Milkdown Crepe)
+vendor-src/           Dependency source for esbuild bundling
+prototype/            Early interaction prototypes & UI drafts
+tools/                CDP test scripts & build utilities
+docs/                 User manual (Chinese)
 ```
 
 ## License
 
-MIT
+[MIT](LICENSE) © Nan Jiang
