@@ -157,7 +157,9 @@ body:not(.side-hidden) #content{left:var(--sidebar-w)}
 #editorWrap.a4-paper{
   --a4-bg:#ffffff; --a4-ink:#22262a;        /* 浅色主题：纸白 */
   --a4-code:#f4f4ef; --a4-th:#f5f5f1;
-  max-width:794px; width:794px;
+  width:fit-content;                        /* 内容自带格式（宽表格/代码/图片）时自动加宽 */
+  min-width:794px;                          /* 基准 A4 宽 */
+  max-width:min(1400px, calc(100vw - 120px));/* 加宽上限，超出由纸内元素横向滚动 */
   margin:calc(var(--title-h) + var(--toolbar-h) + 36px) auto calc(var(--status-h) + 60px);
   padding:96px 90px 120px;                 /* 纸内边距 ≈ A4 页边距 */
   background:var(--a4-bg);
@@ -166,6 +168,11 @@ body:not(.side-hidden) #content{left:var(--sidebar-w)}
   border-radius:2px;
   min-height:1123px;                        /* 一整页 A4 高度 */
 }
+/* 纸内宽元素：跟随纸面内容自适应，超宽横向滚动 */
+#editorWrap.a4-paper .ProseMirror{max-width:none;overflow-x:auto}
+#editorWrap.a4-paper table{width:auto;min-width:100%}   /* 表格按内容撑宽，窄表仍占满纸面 */
+#editorWrap.a4-paper pre{overflow-x:auto}
+#editorWrap.a4-paper img{max-width:none}                 /* 图片按原始尺寸撑开纸面 */
 #editorWrap.a4-paper .ProseMirror{min-height:907px}  /* 纸内正文区至少撑满一页 */
 /* 深色主题（显式 dark 与 auto+系统深色）：纸面统一深色，与编辑模式背景一致 */
 html[data-theme="dark"] #editorWrap.a4-paper{ --a4-bg:#202324; --a4-ink:#d8dad6; --a4-code:#222627; --a4-th:#26292b }
@@ -437,7 +444,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="pane" id="welcome">
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.14</span></p>
+        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.15</span></p>
         <div class="w-label">最近打开
           <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
