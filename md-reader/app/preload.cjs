@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('mdr', {
   /* 系统对话框 */
   openFileDialog: () => ipcRenderer.invoke('sys:open-file-dialog'),
   openDirDialog: () => ipcRenderer.invoke('sys:open-dir-dialog'),
+  documentsDir: () => ipcRenderer.invoke('sys:documents-dir'),
   openExternal: (url) => ipcRenderer.invoke('sys:open-external', url),
 
   /* 窗口控制 */

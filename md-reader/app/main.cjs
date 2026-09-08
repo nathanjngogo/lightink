@@ -350,7 +350,8 @@ function registerIpc() {
     addRecent(p, path.basename(p));
     return p;
   });
-  ipcMain.handle('sys:open-dir-dialog', async () => {
+  ipcMain.handle('sys:documents-dir', () => app.getPath('documents'));
+ipcMain.handle('sys:open-dir-dialog', async () => {
     const r = await dialog.showOpenDialog(win, { properties: ['openDirectory'] });
     if (r.canceled || !r.filePaths[0]) return null;
     return r.filePaths[0];

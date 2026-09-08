@@ -424,7 +424,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="pane" id="welcome">
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.10</span></p>
+        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.11</span></p>
         <div class="w-label">最近打开
           <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
@@ -702,7 +702,10 @@ function askCloseUnsaved(defaultName){
     dlg.classList.add('show');
     input.hidden=false; input.value=defaultName; msg.hidden=true; dirRow.hidden=false;
     let chosenDir = null;   // null = 默认（文档目录或原目录）
-    $('#dlgDir').textContent = cur?.path ? cur.path.replace(/[\\/][^\\/]+$/,'') : '文档';
+    // 完整路径展示：已有文件=原目录；新文档=「文档」目录真实路径
+    let defaultDir = cur?.path ? cur.path.replace(/[\\/][^\\/]+$/,'') : (window.__docsDir || '文档');
+    $('#dlgDir').textContent = defaultDir;
+    $('#dlgDir').title = defaultDir;
     // 三按钮布局：取消 | 不保存 | 保存
     btns.className='dlg-btns three';
     btns.innerHTML = '<button id="dlgCancel">取消</button>'
@@ -939,7 +942,7 @@ if (window.mdr?.onCloseAsk) {
 
 /* ===== 新建文档 ===== */
 async function createNewDoc(){
-  const name = await askText('新建文档（关闭时再选择保存位置）', '未命名.md');
+  const name = await askText('新建文档', '未命名.md');
   if(!name) return;
   const finalName = /\.(md|markdown|txt)$/i.test(name) ? name : name + '.md';
   // 内存文档：不立即写盘，关闭时弹窗选择保存位置（guardClose 处理）
@@ -1393,6 +1396,7 @@ $('#btnCloseDoc').onclick = closeDoc;
 
 /* ---------- 启动 ---------- */
 applySettings(); applyTheme();
+if (window.mdr?.documentsDir) { window.mdr.documentsDir().then(d => { window.__docsDir = d; }).catch(()=>{}); }
 $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m==='read'));
 $('#stMode').textContent='阅读模式';
 if(window.mdr?.isElectron){
