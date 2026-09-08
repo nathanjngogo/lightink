@@ -151,6 +151,21 @@ body.side-hidden #sidebar{transform:translateX(-102%)}
 #content{position:absolute;top:0;bottom:0;left:0;right:0;min-width:0;overflow:hidden;transition:left .2s ease}
 body:not(.side-hidden) #content{left:var(--sidebar-w)}
 .pane{position:absolute;inset:0;overflow:auto}
+/* A4 纸面模式（新建文档）：编辑区呈现 A4 纸张，超出后无限向下延伸 */
+#editorWrap.a4-paper{
+  max-width:794px; width:794px;
+  margin:calc(var(--title-h) + var(--toolbar-h) + 36px) auto calc(var(--status-h) + 60px);
+  padding:96px 90px 120px;                 /* 纸内边距 ≈ A4 页边距 */
+  background:#ffffff;
+  color:#22262a;
+  box-shadow:0 1px 3px rgba(0,0,0,.10), 0 8px 32px rgba(0,0,0,.12);
+  border-radius:2px;
+  min-height:1123px;                        /* 一整页 A4 高度 */
+}
+#editorWrap.a4-paper .ProseMirror{min-height:907px}  /* 纸内正文区至少撑满一页 */
+:root[data-theme="dark"] #editorWrap.a4-paper,
+body[data-theme="dark"] #editorWrap.a4-paper{ box-shadow:0 1px 3px rgba(0,0,0,.45), 0 8px 32px rgba(0,0,0,.5) }
+@media print{ #editorWrap.a4-paper{box-shadow:none;margin:0} }
 #editorWrap{max-width:var(--measure);margin:0 auto;padding:calc(var(--title-h) + var(--toolbar-h) + 44px) 40px calc(var(--status-h) + 20vh);font-size:var(--fs);line-height:var(--lh);
   transition:max-width .2s,font-size .15s}
 /* ---- Crepe 编辑区精修 ---- */
@@ -393,7 +408,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="pane" id="welcome">
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.7</span></p>
+        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.8</span></p>
         <div class="w-label">最近打开
           <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
@@ -913,6 +928,7 @@ async function createNewDoc(){
   const finalName = /\.(md|markdown|txt)$/i.test(name) ? name : name + '.md';
   // 内存文档：不立即写盘，关闭时弹窗选择保存位置（guardClose 处理）
   cur = { id:'new:'+finalName, name: finalName, text: '# '+finalName.replace(/\.(md|markdown|txt)$/i,'')+'\n\n', handle:null, path:null, isNew:true };
+  $('#editorWrap').classList.add('a4-paper');   // 新建文档：A4 纸面
   document.body.setAttribute('data-doc-open','1');
   $('#docTitleText').textContent = finalName;
   $('#btnCloseDoc').hidden = false;
@@ -1326,6 +1342,7 @@ function closeDoc(){
   $('#docTitleText').textContent='未打开文档';
   $('#btnCloseDoc').hidden=true;
   $('#docTitle').classList.remove('modified');
+  $('#editorWrap').classList.remove('a4-paper');
   cur=null;
   document.body.removeAttribute('data-doc-open');
 }
