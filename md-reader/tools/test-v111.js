@@ -1,35 +1,48 @@
 (async () => {
   const $ = (s) => document.querySelector(s);
   const out = {};
-  // ===== 1. 新建弹窗：只有命名（无保存地址行）=====
+  // ===== 1. 新建弹窗：只保留文件命名（无地址行）=====
   $('#btnNewDoc').click();
   await new Promise(r=>setTimeout(r,300));
-  out.newTitle = $('#dlgTitle').textContent;             // 期望「新建文档」
-  out.newHasDirRow = !$('#dlgDirRow').hidden;            // 期望 false（隐藏）
-  out.newInput = $('#dlgInput').value;
-  // 完成新建
-  $('#dlgInput').value = 'v111测试.md';
+  out.newDlg = {
+    title: $('#dlgTitle').textContent,
+    hasInput: !$('#dlgInput').hidden,
+    hasDirRow: !$('#dlgDirRow').hidden,   // 期望 false（隐藏）
+  };
+  $('#dlgCancel').click();
+  await new Promise(r=>setTimeout(r,200));
+  // ===== 2. 新建文档 → 关闭 → 退出弹窗显示完整文档目录路径 =====
+  $('#btnNewDoc').click();
+  await new Promise(r=>setTimeout(r,300));
+  $('#dlgInput').value = '路径测试.md';
   $('#dlgOk').click();
-  await new Promise(r=>setTimeout(r,1400));
-  // ===== 2. 关闭弹窗：显示完整保存路径，默认文档目录 =====
-  out.docsDir = window.__docsDir;                        // 期望 C:\Users\1\Documents
+  await new Promise(r=>setTimeout(r,1500));
   const pm = document.querySelector('.ProseMirror');
-  const p = pm.querySelector('p') || pm.querySelector('h1');
-  const rg = document.createRange(); rg.selectNodeContents(p); rg.collapse(false);
+  const p1 = pm.querySelector('p') || pm.querySelector('h1');
+  const rg = document.createRange(); rg.selectNodeContents(p1); rg.collapse(false);
   const sel = getSelection(); sel.removeAllRanges(); sel.addRange(rg);
-  document.execCommand('insertText', false, '内容');
+  document.execCommand('insertText', false, 'X');
   await new Promise(r=>setTimeout(r,1000));
   $('#btnCloseDoc').click();
   await new Promise(r=>setTimeout(r,400));
-  out.closeTitle = $('#dlgTitle').textContent;
-  out.dirRowVisible = !$('#dlgDirRow').hidden;
-  out.dirText = $('#dlgDir').textContent;                // 期望完整路径
-  out.dirIsFullPath = $('#dlgDir').textContent.includes('\\') || $('#dlgDir').textContent.includes('/');
-  out.dirPickBtn = !!$('#dlgDirPick');
-  // 取消并放弃，清理
-  $('#dlgDiscard').click();
-  await new Promise(r=>setTimeout(r,400));
-  out.backHome = !document.body.hasAttribute('data-doc-open');
+  const dirInput = $('#dlgDir');
+  out.quitDlg = {
+    shown: $('#dlg').classList.contains('show'),
+    isInput: dirInput.tagName === 'INPUT',
+    dirValue: dirInput.value,                        // 期望 C:\Users\1\Documents
+    fullWinPath: /^[A-Za-z]:\\/.test(dirInput.value) || dirInput.value.startsWith('C:/'),
+    hasPickBtn: !!$('#dlgDirPick'),
+    threeBtns: { cancel: !!$('#dlgCancel'), discard: !!$('#dlgDiscard'), save: !!$('#dlgOk') },
+  };
+  // ===== 3. 手动改路径（模拟输入）→ 保存 → 文件落到新路径 =====
+  const customDir = 'C:/Users/1/Documents/ChatGPT/软件开发/md-reader/testsave';
+  dirInput.value = customDir;
+  dirInput.dispatchEvent(new Event('input'));
+  $('#dlgOk').click();
+  await new Promise(r=>setTimeout(r,800));
+  out.savedToCustom = await window.mdr.fileExists(customDir + '/路径测试.md');
+  out.backHomeAfterSave = !document.body.hasAttribute('data-doc-open');
+  // 清理测试文件交给外部 python（桥无删除 API）
   out.errs = window.__errors;
   return out;
 })()

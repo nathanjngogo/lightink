@@ -329,7 +329,10 @@ function registerIpc() {
   });
   ipcMain.handle('doc:create', async (_e, name, dir) => {
     // 新建 md：写入目标目录（默认「文档」），重名自动加序号
-    let target = path.join(dir || app.getPath('documents'), name);
+    const cleanDir = dir ? String(dir).replace(/^[\"']+|[\"'\\/]+$/g, '') : '';
+    const finalDir = cleanDir || app.getPath('documents');
+    fs.mkdirSync(finalDir, { recursive: true });
+    let target = path.join(finalDir, name);
     const ext = path.extname(name) || '.md';
     const base = target.slice(0, -ext.length);
     let i = 1;

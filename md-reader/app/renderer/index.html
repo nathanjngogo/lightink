@@ -354,7 +354,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .dlg-btns button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 .dlg-dir{display:flex;align-items:center;gap:10px;margin:12px 0 4px}
 .dlg-dir-label{font-size:12px;color:var(--muted);flex:none}
-.dlg-dir .path{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dlgDir{flex:1;min-width:0;font:12.5px var(--mono);background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--ink)}
+#dlgDir:focus{outline:none;border-color:var(--accent)}
 .dlg-btns.three{justify-content:space-between}
 .dlg-btns.three .grp{display:flex;gap:10px}
 .dlg-btns button.danger-ghost{border-color:var(--border);color:var(--muted)}
@@ -516,7 +517,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="dlg-msg" id="dlgMsg" hidden></div>
   <div class="dlg-dir" id="dlgDirRow" hidden>
     <span class="dlg-dir-label">保存地址</span>
-    <span class="path" id="dlgDir">文档</span>
+    <input class="path" id="dlgDir" spellcheck="false" placeholder="选择保存文件夹">
     <button id="dlgDirPick" class="shelf-btn" title="选择保存位置"><svg class="ic" viewBox="0 0 20 20"><path d="M3 7a2 2 0 012-2h4l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg></button>
   </div>
   <div class="dlg-btns" id="dlgBtns"><button id="dlgCancel">取消</button><button id="dlgOk" class="primary">确定</button></div>
@@ -704,22 +705,23 @@ function askCloseUnsaved(defaultName){
     let chosenDir = null;   // null = 默认（文档目录或原目录）
     // 完整路径展示：已有文件=原目录；新文档=「文档」目录真实路径
     let defaultDir = cur?.path ? cur.path.replace(/[\\/][^\\/]+$/,'') : (window.__docsDir || '文档');
-    $('#dlgDir').textContent = defaultDir;
-    $('#dlgDir').title = defaultDir;
+    $('#dlgDir').value = defaultDir;
     // 三按钮布局：取消 | 不保存 | 保存
     btns.className='dlg-btns three';
     btns.innerHTML = '<button id="dlgCancel">取消</button>'
       + '<span class="grp"><button id="dlgDiscard" class="danger-ghost">不保存</button>'
       + '<button id="dlgOk" class="primary">保存</button></span>';
     const finish=v=>{ dlg.classList.remove('show'); btns.className='dlg-btns'; dirRow.hidden=true;
-      $('#dlgDirPick').onclick=null; resolve(v); };
+      $('#dlgDirPick').onclick=null; $('#dlgDir').oninput=null; resolve(v); };
     $('#dlgCancel').onclick=()=>finish('cancel');
     $('#dlgDiscard').onclick=()=>finish('discard');
-    $('#dlgOk').onclick=()=>finish({action:'save', name:input.value.trim(), dir:chosenDir});
-    input.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault(); finish({action:'save', name:input.value.trim(), dir:chosenDir});} };
+    const readDir = () => { const v = $('#dlgDir').value.trim(); return v || null; };
+    $('#dlgOk').onclick=()=>finish({action:'save', name:input.value.trim(), dir:readDir()});
+    input.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault(); finish({action:'save', name:input.value.trim(), dir:readDir()});} };
+    $('#dlgDir').oninput=()=>{ chosenDir = $('#dlgDir').value.trim() || null; };
     $('#dlgDirPick').onclick=async()=>{
       const d = await window.mdr.openDirDialog();
-      if(d){ chosenDir = d; $('#dlgDir').textContent = d; }
+      if(d){ chosenDir = d; $('#dlgDir').value = d; }
     };
     setTimeout(()=>{ input.focus(); const dot=input.value.lastIndexOf('.'); input.setSelectionRange(0, dot>0?dot:input.value.length); },50);
   });
