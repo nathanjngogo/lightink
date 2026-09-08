@@ -1,7 +1,7 @@
 {
   "name": "lightink",
   "productName": "LightInk",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "轻墨 LightInk — 本地 Markdown 编辑器 + 阅读器",
   "main": "main.cjs",
   "author": "user",
