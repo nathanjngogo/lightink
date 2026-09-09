@@ -300,6 +300,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 /* ============ 命令面板 ============ */
 #btnCloseDoc{color:var(--muted)}
 #btnCloseDoc:hover{color:#c42b1c}
+.tbtn.mode-lock{gap:8px;border:1px solid var(--border);border-radius:99px;padding:6px 14px;color:var(--muted)}
+.tbtn.mode-lock .lock-dot{width:14px;height:14px;border-radius:50%;background:var(--border-strong);transition:background .15s;position:relative}
+.tbtn.mode-lock[aria-checked="true"]{color:var(--ink);border-color:var(--accent);background:var(--accent-soft)}
+.tbtn.mode-lock[aria-checked="true"] .lock-dot{background:var(--accent)}
+.tbtn.mode-lock[aria-checked="true"] .lock-dot::after{content:'';position:absolute;inset:3px;border-radius:50%;background:#fff}
 /* 工具栏中部居中的命令面板入口 */
 .tbtn.pal-cen{flex:0 1 320px;justify-content:center;gap:8px;color:var(--muted);
   background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:6px 14px}
@@ -413,6 +418,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <button data-m="source">源码</button>
   </div>
   <div class="spacer"></div>
+  <button class="tbtn mode-lock" id="btnKeepMode" role="switch" aria-checked="false" title="开启后切换文档保持当前模式（编辑/源码）；关闭则每次回到阅读模式">
+    <span class="lock-dot"></span><span id="keepModeLabel">阅读优先</span>
+  </button>
+  <div class="spacer"></div>
   <button class="tbtn pal-cen" id="btnPalette" title="命令面板（Ctrl K）">
     <svg class="ic" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/></svg>
     <span>搜索命令…</span><kbd>Ctrl K</kbd>
@@ -454,7 +463,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="pane" id="welcome">
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.16</span></p>
+        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.17</span></p>
         <div class="w-label">最近打开
           <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
@@ -831,6 +840,7 @@ const docNameOf = { demo:'功能演示.md', readme:'README示例.md', notes:'会
 const LS = { theme:'mdr:theme', set:'mdr:settings', doc:id=>'mdr:doc:'+id };
 let crepe=null, mode='read', cur=null, saveTimer=null, outlineTimer=null, dirtyGuard=false;
 const settings = Object.assign({ fs:17, lh:1.9, mw:44, autosave:true }, JSON.parse(localStorage.getItem(LS.set)||'{}'));
+let keepModePref = localStorage.getItem('mdr:keepMode') === '1';
 
 /* ---------- 设置 ---------- */
 function applySettings(){
@@ -947,14 +957,25 @@ async function openDoc(o){
   $('#btnCloseDoc').hidden=false;
   $('#docTitle').classList.remove('modified');
   $('#stSave').textContent=saved&&!o.handle?'已恢复本地修改':'就绪';
-  // 文档默认以阅读模式打开（独立于上次模式）
-  mode='read';
-  document.body.dataset.mode='read';
-  $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m==='read'));
-  $('#stMode').textContent='阅读模式';
+  // 初始模式：阅读优先（默认）或保持当前模式（编辑/源码）
+  const keepEdit = typeof keepModePref !== 'undefined' && keepModePref && (mode==='edit' || mode==='source');
+  const startMode = keepEdit ? mode : 'read';
+  mode=startMode;
+  document.body.dataset.mode=startMode;
+  $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===startMode));
+  $('#stMode').textContent=({edit:'所见即所得',read:'阅读模式',source:'源码模式'})[startMode];
   await mountEditor(cur.text);
-  // 兜底：编辑器懒初始化等时序后，再次确保阅读态（对冲一切竞态）
-  requestAnimationFrame(()=>{ if(mode!=='read' && cur && document.body.dataset.mode!=='edit'){ mode='read'; document.body.dataset.mode='read'; if(crepe) try{crepe.setReadonly(true);}catch(_){}} });
+  // 兜底：阅读优先时对冲一切竞态；保持模式时反向兜底确保不被重置
+  requestAnimationFrame(()=>{
+    if(!cur) return;
+    if(startMode==='read'){
+      if(mode!=='read' && document.body.dataset.mode!=='edit'){ mode='read'; document.body.dataset.mode='read'; if(crepe) try{crepe.setReadonly(true);}catch(_){}}
+    } else if(document.body.dataset.mode!==startMode){
+      mode=startMode; document.body.dataset.mode=startMode;
+      $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===startMode));
+      if(crepe) try{crepe.setReadonly(startMode==='read');}catch(_){}
+    }
+  });
   restorePos();
 }
 
@@ -1438,6 +1459,20 @@ window.__closeDoc = closeDoc;
 window.__setDirtyGuard = v => { dirtyGuard = v; };
 window.__getDirtyGuard = () => dirtyGuard;
 $('#btnCloseDoc').onclick = closeDoc;
+
+/* ===== 阅读优先 / 保持模式 开关 ===== */
+function applyKeepModeUI(){
+  const b = $('#btnKeepMode');
+  b.setAttribute('aria-checked', keepModePref ? 'true' : 'false');
+  $('#keepModeLabel').textContent = keepModePref ? '保持编辑' : '阅读优先';
+}
+applyKeepModeUI();
+$('#btnKeepMode').onclick = () => {
+  keepModePref = !keepModePref;
+  localStorage.setItem('mdr:keepMode', keepModePref ? '1' : '0');
+  applyKeepModeUI();
+  toast(keepModePref ? '切换文档时保持当前模式（编辑/源码）' : '切换文档时回到阅读模式');
+};
 
 /* ---------- 启动 ---------- */
 applySettings(); applyTheme();

@@ -93,6 +93,11 @@ svg.ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;str
   transition:all .12s;-webkit-app-region:no-drag}
 #btnCloseDoc:hover{border-color:#c42b1c;color:#c42b1c;background:rgba(196,43,28,.08)}
 #btnCloseDoc[hidden]{display:none}
+.tbtn.mode-lock{gap:8px;border:1px solid var(--border);border-radius:99px;padding:6px 14px;color:var(--muted)}
+.tbtn.mode-lock .lock-dot{width:14px;height:14px;border-radius:50%;background:var(--border-strong);transition:background .15s;position:relative}
+.tbtn.mode-lock[aria-checked="true"]{color:var(--ink);border-color:var(--accent);background:var(--accent-soft)}
+.tbtn.mode-lock[aria-checked="true"] .lock-dot{background:var(--accent)}
+.tbtn.mode-lock[aria-checked="true"] .lock-dot::after{content:'';position:absolute;inset:3px;border-radius:50%;background:#fff}
 /* ===== macOS 平台适配 ===== */
 html[data-platform="mac"] .win-controls{display:none}          /* 交通灯替代自绘按钮 */
 html[data-platform="mac"] header#titlebar .brand{margin-left:72px} /* 让位交通灯 */
@@ -836,6 +841,7 @@ const docNameOf = { demo:'功能演示.md', readme:'README示例.md', notes:'会
 const LS = { theme:'mdr:theme', set:'mdr:settings', doc:id=>'mdr:doc:'+id };
 let crepe=null, mode='read', cur=null, saveTimer=null, outlineTimer=null, dirtyGuard=false;
 const settings = Object.assign({ fs:17, lh:1.9, mw:44, autosave:true }, JSON.parse(localStorage.getItem(LS.set)||'{}'));
+let keepModePref = localStorage.getItem('mdr:keepMode') === '1';
 
 /* ---------- 设置 ---------- */
 function applySettings(){
@@ -952,14 +958,24 @@ async function openDoc(o){
   $('#btnCloseDoc').hidden=false;
   $('#docTitle').classList.remove('modified');
   $('#stSave').textContent=saved&&!o.handle?'已恢复本地修改':'就绪';
-  // 文档默认以阅读模式打开（独立于上次模式）
-  mode='read';
-  document.body.dataset.mode='read';
-  $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m==='read'));
-  $('#stMode').textContent='阅读模式';
+  // 初始模式：阅读优先（默认）或保持当前模式（编辑/源码）
+  const keepEdit = typeof keepModePref !== 'undefined' && keepModePref && (mode==='edit' || mode==='source');
+  const startMode = keepEdit ? mode : 'read';
+  mode=startMode;
+  document.body.dataset.mode=startMode;
+  $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===startMode));
+  $('#stMode').textContent=({edit:'所见即所得',read:'阅读模式',source:'源码模式'})[startMode];
   await mountEditor(cur.text);
-  // 兜底：编辑器懒初始化等时序后，再次确保阅读态（对冲一切竞态）
-  requestAnimationFrame(()=>{ if(mode!=='read' && cur && document.body.dataset.mode!=='edit'){ mode='read'; document.body.dataset.mode='read'; if(crepe) try{crepe.setReadonly(true);}catch(_){}} });
+  requestAnimationFrame(()=>{
+    if(!cur) return;
+    if(startMode==='read'){
+      if(mode!=='read' && document.body.dataset.mode!=='edit'){ mode='read'; document.body.dataset.mode='read'; if(crepe) try{crepe.setReadonly(true);}catch(_){}}
+    } else if(document.body.dataset.mode!==startMode){
+      mode=startMode; document.body.dataset.mode=startMode;
+      $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===startMode));
+      if(crepe) try{crepe.setReadonly(startMode==='read');}catch(_){}
+    }
+  });
   restorePos();
 }
 
@@ -1444,6 +1460,20 @@ window.__closeDoc = closeDoc;
 window.__setDirtyGuard = v => { dirtyGuard = v; };
 window.__getDirtyGuard = () => dirtyGuard;
 $('#btnCloseDoc').onclick = closeDoc;
+
+/* ===== 阅读优先 / 保持模式 开关 ===== */
+function applyKeepModeUI(){
+  const b = $('#btnKeepMode');
+  b.setAttribute('aria-checked', keepModePref ? 'true' : 'false');
+  $('#keepModeLabel').textContent = keepModePref ? '保持编辑' : '阅读优先';
+}
+applyKeepModeUI();
+$('#btnKeepMode').onclick = () => {
+  keepModePref = !keepModePref;
+  localStorage.setItem('mdr:keepMode', keepModePref ? '1' : '0');
+  applyKeepModeUI();
+  toast(keepModePref ? '切换文档时保持当前模式（编辑/源码）' : '切换文档时回到阅读模式');
+};
 
 /* ---------- 启动 ---------- */
 // Platform flag: macOS uses native traffic lights, custom win-controls hidden via CSS
