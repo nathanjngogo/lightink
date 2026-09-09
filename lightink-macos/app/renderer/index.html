@@ -93,11 +93,15 @@ svg.ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;str
   transition:all .12s;-webkit-app-region:no-drag}
 #btnCloseDoc:hover{border-color:#c42b1c;color:#c42b1c;background:rgba(196,43,28,.08)}
 #btnCloseDoc[hidden]{display:none}
-.tbtn.mode-lock{gap:8px;border:1px solid var(--border);border-radius:99px;padding:6px 14px;color:var(--muted)}
-.tbtn.mode-lock .lock-dot{width:14px;height:14px;border-radius:50%;background:var(--border-strong);transition:background .15s;position:relative}
-.tbtn.mode-lock[aria-checked="true"]{color:var(--ink);border-color:var(--accent);background:var(--accent-soft)}
-.tbtn.mode-lock[aria-checked="true"] .lock-dot{background:var(--accent)}
-.tbtn.mode-lock[aria-checked="true"] .lock-dot::after{content:'';position:absolute;inset:3px;border-radius:50%;background:#fff}
+.tbtn.mode-lock{gap:10px;border:1px solid var(--border);border-radius:99px;padding:5px 8px 5px 14px;color:var(--muted);font-size:12.5px}
+.tbtn.mode-lock:hover{color:var(--ink);border-color:var(--border-strong)}
+.tbtn.mode-lock[aria-checked="true"]{color:var(--accent);border-color:var(--accent)}
+.tbtn.mode-lock .mini-switch{position:relative;width:34px;height:20px;border-radius:10px;flex:none;
+  background:var(--border-strong);transition:background .18s}
+.tbtn.mode-lock .mini-switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s cubic-bezier(.4,0,.2,1)}
+.tbtn.mode-lock[aria-checked="true"] .mini-switch{background:var(--accent)}
+.tbtn.mode-lock[aria-checked="true"] .mini-switch::after{left:16px}
 /* ===== macOS 平台适配 ===== */
 html[data-platform="mac"] .win-controls{display:none}          /* 交通灯替代自绘按钮 */
 html[data-platform="mac"] header#titlebar .brand{margin-left:72px} /* 让位交通灯 */
@@ -422,6 +426,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <button data-m="edit">编辑</button>
     <button data-m="source">源码</button>
   </div>
+  <div class="spacer"></div>
+  <button class="tbtn mode-lock" id="btnKeepMode" role="switch" aria-checked="false" title="开启后切换文档保持当前模式（编辑/源码）；关闭则每次回到阅读模式">
+    <svg class="ic" viewBox="0 0 20 20"><path d="M4 5h9a5 5 0 010 10H4"/><circle cx="6" cy="10" r="2.4"/></svg>
+    <span id="keepModeLabel">阅读优先</span>
+    <span class="mini-switch" aria-hidden="true"></span>
+  </button>
   <div class="spacer"></div>
   <button class="tbtn pal-cen" id="btnPalette" title="命令面板（Ctrl K）">
     <svg class="ic" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/></svg>
