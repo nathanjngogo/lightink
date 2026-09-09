@@ -323,7 +323,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .p-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:var(--r-sm);font-size:13.5px;text-align:left}
 .p-item.sel{background:var(--accent-soft);color:var(--accent)}
 .p-item .hint{margin-left:auto;font-size:11px;color:var(--muted)}
-#banner{display:none;position:fixed;top:calc(var(--title-h) + var(--toolbar-h));left:0;right:0;z-index:35;padding:7px 16px;background:#b3261e;color:#fff;font-size:13px}
+#banner{display:none;position:fixed;top:calc(var(--title-h) + var(--toolbar-h));left:0;right:0;z-index:35;background:#b3261e;color:#fff;font-size:13px}
+#banner .banner-body{display:flex;align-items:center;gap:12px;padding:7px 16px}
+#bannerMsg{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#bannerClose{flex:none;width:22px;height:22px;border:1px solid rgba(255,255,255,.35);border-radius:6px;
+  background:transparent;color:#fff;font-size:12px;line-height:1;cursor:pointer;display:grid;place-items:center}
+#bannerClose:hover{background:rgba(255,255,255,.16)}
 /* ============ 查找条 ============ */
 #findbar{position:fixed;top:calc(var(--title-h) + var(--toolbar-h) + 10px);left:50%;transform:translateX(-50%);
   z-index:45;display:none;align-items:center;gap:6px;padding:6px 10px;border-radius:var(--r-md);
@@ -430,7 +435,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </button>
 </nav>
 
-<div id="banner"></div>
+<div id="banner" role="alert">
+  <div class="banner-body">
+    <span id="bannerMsg"></span>
+    <button id="bannerClose" title="关闭提示">✕</button>
+  </div>
+</div>
 
 <!-- 主区 -->
 <div id="main">
@@ -687,7 +697,13 @@ MIT
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 window.__errors = [];
-const errPush = m => { window.__errors.push(String(m)); const b=$('#banner'); b.style.display='block'; b.textContent='⚠ '+String(m).slice(0,160); };
+const errPush = m => {
+  window.__errors.push(String(m));
+  const b = $('#banner');
+  $('#bannerMsg').textContent = '⚠ ' + String(m).slice(0, 300);
+  b.style.display = 'block';
+  $('#bannerClose').onclick = () => { b.style.display = 'none'; };
+};
 window.addEventListener('error', e => errPush(e.message));
 window.addEventListener('unhandledrejection', e => errPush(e.reason));
 const toast = m => { const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),1600); };

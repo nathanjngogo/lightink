@@ -318,7 +318,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .p-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:var(--r-sm);font-size:13.5px;text-align:left}
 .p-item.sel{background:var(--accent-soft);color:var(--accent)}
 .p-item .hint{margin-left:auto;font-size:11px;color:var(--muted)}
-#banner{display:none;position:fixed;top:calc(var(--title-h) + var(--toolbar-h));left:0;right:0;z-index:35;padding:7px 16px;background:#b3261e;color:#fff;font-size:13px}
+#banner{display:none;position:fixed;top:calc(var(--title-h) + var(--toolbar-h));left:0;right:0;z-index:35;background:#b3261e;color:#fff;font-size:13px}
+#banner .banner-body{display:flex;align-items:center;gap:12px;padding:7px 16px}
+#bannerMsg{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#bannerClose{flex:none;width:22px;height:22px;border:1px solid rgba(255,255,255,.35);border-radius:6px;
+  background:transparent;color:#fff;font-size:12px;line-height:1;cursor:pointer;display:grid;place-items:center}
+#bannerClose:hover{background:rgba(255,255,255,.16)}
 /* ============ 查找条 ============ */
 #findbar{position:fixed;top:calc(var(--title-h) + var(--toolbar-h) + 10px);left:50%;transform:translateX(-50%);
   z-index:45;display:none;align-items:center;gap:6px;padding:6px 10px;border-radius:var(--r-md);
@@ -425,7 +430,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </button>
 </nav>
 
-<div id="banner"></div>
+<div id="banner" role="alert">
+  <div class="banner-body">
+    <span id="bannerMsg"></span>
+    <button id="bannerClose" title="关闭提示">✕</button>
+  </div>
+</div>
 
 <!-- 主区 -->
 <div id="main">
@@ -444,7 +454,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="pane" id="welcome">
       <div class="hero">
         <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.15</span></p>
+        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.16</span></p>
         <div class="w-label">最近打开
           <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
         </div>
@@ -682,7 +692,13 @@ MIT
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 window.__errors = [];
-const errPush = m => { window.__errors.push(String(m)); const b=$('#banner'); b.style.display='block'; b.textContent='⚠ '+String(m).slice(0,160); };
+const errPush = m => {
+  window.__errors.push(String(m));
+  const b = $('#banner');
+  $('#bannerMsg').textContent = '⚠ ' + String(m).slice(0, 300);
+  b.style.display = 'block';               // 常驻显示，由用户手动关闭
+  $('#bannerClose').onclick = () => { b.style.display = 'none'; };
+};
 window.addEventListener('error', e => errPush(e.message));
 window.addEventListener('unhandledrejection', e => errPush(e.reason));
 const toast = m => { const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),1600); };
