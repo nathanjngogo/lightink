@@ -784,7 +784,29 @@ function askCloseUnsaved(defaultName){
     setTimeout(()=>{ input.focus(); const dot=input.value.lastIndexOf('.'); input.setSelectionRange(0, dot>0?dot:input.value.length); },50);
   });
 }
+/* 切换文档时未保存更改对话框：'cancel' | 'discard' | {action:'save', name, dir} */
+function askSwitchUnsaved(defaultName){
+  return new Promise(resolve=>{
+    const dlg=$('#dlg'), input=$('#dlgInput'), msg=$('#dlgMsg'), dirRow=$('#dlgDirRow'), btns=$('#dlgBtns');
+    $('#dlgTitle').textContent='当前文档有未保存的更改';
+    dlg.classList.add('show');
+    input.hidden=false; input.value=defaultName; msg.hidden=false; dirRow.hidden=true;
+    msg.textContent='打开新文档前，是否保存当前更改？';
+    // 三按钮布局：取消 | 不保存 | 保存
+    btns.className='dlg-btns three';
+    btns.innerHTML = '<button id="dlgCancel">取消</button>'
+      + '<span class="grp"><button id="dlgDiscard" class="danger-ghost">不保存</button>'
+      + '<button id="dlgOk" class="primary">保存</button></span>';
+    const finish=v=>{ dlg.classList.remove('show'); btns.className='dlg-btns'; resolve(v); };
+    $('#dlgCancel').onclick=()=>finish('cancel');
+    $('#dlgDiscard').onclick=()=>finish('discard');
+    $('#dlgOk').onclick=()=>finish({action:'save'});
+    input.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault(); finish({action:'save'});} else if(e.key==='Escape'){e.preventDefault(); finish('cancel');} };
+    setTimeout(()=>{ input.focus(); const dot=input.value.lastIndexOf('.'); input.setSelectionRange(0, dot>0?dot:input.value.length); },50);
+  });
+}
 window.__askCloseUnsaved = askCloseUnsaved;
+window.__askSwitchUnsaved = askSwitchUnsaved;
 
 /* 关闭主窗口对话框：最小化托盘 / 退出 */
 function askQuitDialog(){
@@ -844,7 +866,7 @@ mdrMdReady();
 const docs = { demo:$('#doc-demo').textContent.trim(), readme:$('#doc-readme').textContent.trim(), notes:$('#doc-notes').textContent.trim() };
 const docNameOf = { demo:'功能演示.md', readme:'README示例.md', notes:'会议笔记.md' };
 const LS = { theme:'mdr:theme', set:'mdr:settings', doc:id=>'mdr:doc:'+id };
-let crepe=null, mode='read', cur=null, saveTimer=null, outlineTimer=null, dirtyGuard=false;
+let crepe=null, mode='read', cur=null, saveTimer=null, outlineTimer=null, dirtyGuard=false, curDirty=false;
 const settings = Object.assign({ fs:17, lh:1.9, mw:44, autosave:true }, JSON.parse(localStorage.getItem(LS.set)||'{}'));
 let keepModePref = localStorage.getItem('mdr:keepMode') === '1';
 
@@ -895,6 +917,7 @@ async function mountEditor(md){
 }
 function markDirty(){
   dirtyGuard = !cur.path;   // 磁盘文件自动保存；无路径（新建未存）才需要守卫
+  curDirty = true;          // 有未保存修改（切换文档时据此提示）
   $('#docTitle').classList.add('modified');
   $('#stSave').textContent='编辑中…'; $('#stSave').classList.add('dirty');
   clearTimeout(saveTimer);
@@ -910,6 +933,8 @@ async function saveNow(){
       $('#stSave').textContent='已保存到文件 '+new Date().toLocaleTimeString('zh-CN',{hour12:false}); }
     else{ localStorage.setItem(LS.doc(cur.id),cur.text);
       $('#stSave').textContent='已自动保存 '+new Date().toLocaleTimeString('zh-CN',{hour12:false}); }
+    curDirty = false;                            // 已落盘 → 不再是未保存状态
+    $('#docTitle').classList.remove('modified');
     $('#stSave').classList.remove('dirty');
   }catch(e){ $('#stSave').textContent='保存失败'; }
 }
@@ -954,7 +979,51 @@ async function setMode(m){
 $$('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 
 /* ---------- 文档 ---------- */
-async function openDoc(o){
+function isDirty(){
+  // 有未保存修改的判定：
+  // 1) dirtyGuard=true（新建未存盘文档被编辑）
+  // 2) curDirty=true（编辑后尚未写盘/保存）
+  return dirtyGuard || curDirty;
+}
+async function requestOpenDoc(o){
+  // 如果当前没有打开文档，或当前文档无未保存更改，直接打开
+  if (!cur || !isDirty()) return doOpenDoc(o);
+  // 当前有未保存更改：询问用户
+  const choice = await askSwitchUnsaved(cur.name || '未命名.md');
+  if (choice === 'cancel' || choice === null) {
+    return; // 留在当前文档
+  }
+  if (choice === 'discard') {
+    return doOpenDoc(o);
+  }
+  if (choice?.action === 'save') {
+    // 保存当前文档
+    try {
+      if (cur.path && window.mdr?.isElectron) {
+        await window.mdr.writeFile(cur.path, cur.text);
+        dirtyGuard = false;
+        $('#docTitle').classList.remove('modified');
+      } else if (cur.handle) {
+        const w = await cur.handle.createWritable(); await w.write(cur.text); await w.close();
+        dirtyGuard = false;
+        $('#docTitle').classList.remove('modified');
+      } else {
+        // 新文档：需要选择保存位置
+        const target = await window.mdr.docCreate(cur.name, window.__docsDir || undefined);
+        await window.mdr.writeFile(target, cur.text);
+        dirtyGuard = false;
+        $('#docTitle').classList.remove('modified');
+      }
+      return doOpenDoc(o);
+    } catch (e) {
+      errPush('保存失败：' + (e.message || e));
+      return;
+    }
+  }
+}
+
+async function doOpenDoc(o){
+  curDirty = false;   // 新打开的文档：无未保存修改
   const useLocal = !o.handle && !o.path;
   const saved = useLocal ? localStorage.getItem(LS.doc(o.id)) : null;
   cur={ id:o.id, name:o.name||docNameOf[o.id]||o.id, text:saved??o.text, handle:o.handle||null, path:o.path||null };
@@ -998,7 +1067,7 @@ $$('.side-tabs button').forEach(b=>b.onclick=()=>{
 async function openPath(p){
   try{
     const r = await window.mdr.readFile(p);
-    await openDoc({ id:'file:'+p, name:r.name, text:r.text, path:p });
+    await requestOpenDoc({ id:'file:'+p, name:r.name, text:r.text, path:p });
     if(window.mdr?.isElectron){ await window.mdr.addRecent(p, r.name); loadRecentsUI(); }
   }catch(e){ errPush('打开失败：'+(e.message||e)); }
 }
@@ -1014,6 +1083,33 @@ if (window.mdr?.onCloseAsk) {
 
 /* ===== 新建文档 ===== */
 async function createNewDoc(){
+  // 如果当前文档有未保存更改，先询问
+  if (cur && isDirty()) {
+    const choice = await askSwitchUnsaved(cur.name || '未命名.md');
+    if (choice === 'cancel' || choice === null) return;
+    if (choice?.action === 'save') {
+      try {
+        if (cur.path && window.mdr?.isElectron) {
+          await window.mdr.writeFile(cur.path, cur.text);
+          dirtyGuard = false;
+          $('#docTitle').classList.remove('modified');
+        } else if (cur.handle) {
+          const w = await cur.handle.createWritable(); await w.write(cur.text); await w.close();
+          dirtyGuard = false;
+          $('#docTitle').classList.remove('modified');
+        } else {
+          const target = await window.mdr.docCreate(cur.name, window.__docsDir || undefined);
+          await window.mdr.writeFile(target, cur.text);
+          dirtyGuard = false;
+          $('#docTitle').classList.remove('modified');
+        }
+      } catch (e) {
+        errPush('保存失败：' + (e.message || e));
+        return;
+      }
+    }
+    // choice === 'discard' 直接继续新建
+  }
   const name = await askText('新建文档', '未命名.md');
   if(!name) return;
   const finalName = /\.(md|markdown|txt)$/i.test(name) ? name : name + '.md';
@@ -1025,6 +1121,7 @@ async function createNewDoc(){
   $('#btnCloseDoc').hidden = false;
   $('#docTitle').classList.remove('modified');
   $('#stSave').textContent='未保存（新文档）';
+  curDirty = false;   // 刚创建、尚未编辑
   mode='read';
   document.body.dataset.mode='read';
   $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m==='read'));
@@ -1046,7 +1143,7 @@ async function pickFile(){
   if(!window.showOpenFilePicker){ toast('此环境不支持文件选择器，可拖拽 .md 进窗口'); return; }
   try{
     const [h]=await window.showOpenFilePicker({types:[{description:'Markdown',accept:{'text/markdown':['.md','.markdown']}}]});
-    const f=await h.getFile(); openDoc({id:'file:'+f.name,name:f.name,text:await f.text(),handle:h});
+    const f=await h.getFile(); requestOpenDoc({id:'file:'+f.name,name:f.name,text:await f.text(),handle:h});
   }catch(e){ if(e.name!=='AbortError') errPush(e); }
 }
 /* ===== 书架 v2：可管理（新建/重命名/删除文件夹，文件添加/移除） ===== */
@@ -1139,7 +1236,7 @@ async function pickDir(){
     if(!list.length){ const d=document.createElement('div'); d.className='side-empty'; d.textContent='该目录下没有 Markdown 文件'; box.appendChild(d); }
     list.forEach(({name,h})=>{
       const b=document.createElement('button'); b.className='tree-item'; b.textContent=name;
-      b.onclick=async()=>{ const f=await h.getFile(); openDoc({id:'file:'+name,name,text:await f.text(),handle:h}); };
+      b.onclick=async()=>{ const f=await h.getFile(); requestOpenDoc({id:'file:'+name,name,text:await f.text(),handle:h}); };
       box.appendChild(b);
     });
     $$('.side-tabs button')[1].click();
@@ -1160,7 +1257,7 @@ window.addEventListener('drop',async e=>{
     const p = window.mdr.getPathForFile(f);
     if(p){ openPath(p); return; }
   }
-  openDoc({id:'drop:'+f.name,name:f.name,text:await f.text()});
+  requestOpenDoc({id:'drop:'+f.name,name:f.name,text:await f.text()});
 });
 
 /* ---------- 设置抽屉 ---------- */
@@ -1440,7 +1537,7 @@ function closeDoc(){
   $('#btnCloseDoc').hidden=true;
   $('#docTitle').classList.remove('modified');
   $('#editorWrap').classList.remove('a4-paper');
-  cur=null;
+  cur=null; curDirty=false;
   document.body.removeAttribute('data-doc-open');
 }
 
@@ -1464,6 +1561,7 @@ async function guardClose(){
 window.__closeDoc = closeDoc;
 window.__setDirtyGuard = v => { dirtyGuard = v; };
 window.__getDirtyGuard = () => dirtyGuard;
+window.__isDirty = isDirty;
 $('#btnCloseDoc').onclick = closeDoc;
 
 /* ===== 阅读优先 / 保持模式 开关 ===== */
@@ -1491,7 +1589,7 @@ if(window.mdr?.isElectron){
   $('#btnExport').hidden=false;
   $('#btnNewDoc').onclick=createNewDoc;
   renderShelfData();
-  if (__pendingOpenPath) { const p = __pendingOpenPath; __pendingOpenPath = null; try { openPath(p); } catch(e) {} }
+  if(__pendingOpenPath) { const p = __pendingOpenPath; __pendingOpenPath = null; try { openPath(p); } catch(e) {} }
 }
 // onOpenPath 已提前至模块顶部注册（冷启动 open-path 握手）
 </script>
