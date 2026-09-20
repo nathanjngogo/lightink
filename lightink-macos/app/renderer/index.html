@@ -93,20 +93,10 @@ svg.ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;str
   transition:all .12s;-webkit-app-region:no-drag}
 #btnCloseDoc:hover{border-color:#c42b1c;color:#c42b1c;background:rgba(196,43,28,.08)}
 #btnCloseDoc[hidden]{display:none}
-.tbtn.mode-lock{gap:10px;border:1px solid var(--border);border-radius:99px;padding:5px 8px 5px 14px;color:var(--muted);font-size:12.5px}
-.tbtn.mode-lock:hover{color:var(--ink);border-color:var(--border-strong)}
-.tbtn.mode-lock[aria-checked="true"]{color:var(--accent);border-color:var(--accent)}
-.tbtn.mode-lock .mini-switch{position:relative;width:34px;height:20px;border-radius:10px;flex:none;
-  background:var(--border-strong);transition:background .18s}
-.tbtn.mode-lock .mini-switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
-  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s cubic-bezier(.4,0,.2,1)}
-.tbtn.mode-lock[aria-checked="true"] .mini-switch{background:var(--accent)}
-.tbtn.mode-lock[aria-checked="true"] .mini-switch::after{left:16px}
 /* ===== macOS 平台适配 ===== */
 html[data-platform="mac"] .win-controls{display:none}          /* 交通灯替代自绘按钮 */
 html[data-platform="mac"] header#titlebar .brand{margin-left:72px} /* 让位交通灯 */
 html[data-platform="mac"] #titlebar{padding-left:8px}
-
 .win-controls{display:flex;height:100%}
 .win-controls button{width:44px;height:100%;display:grid;place-items:center;color:var(--muted);border-radius:0}
 .win-controls button:hover{background:var(--surface2);color:var(--ink)}
@@ -137,10 +127,24 @@ html[data-platform="mac"] #titlebar{padding-left:8px}
   -webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);
   transition:transform .2s ease}
 body.side-hidden #sidebar{transform:translateX(-102%)}
-.side-tabs{display:flex;gap:2px;padding:8px 8px 4px}
-.side-tabs button{flex:1;height:28px;border-radius:var(--r-sm);font-size:12.5px;color:var(--muted)}
-.side-tabs button.on{background:var(--bg);color:var(--ink);font-weight:600;box-shadow:var(--shadow-1)}
-.side-body{flex:1;overflow:auto;padding:6px 8px 16px}
+.side-tabs{display:flex;align-items:center;gap:2px;padding:8px 8px 4px}
+.side-tabs button[data-t]{flex:1;height:28px;border-radius:var(--r-sm);font-size:12.5px;color:var(--muted)}
+.side-tabs button[data-t].on{background:var(--bg);color:var(--ink);font-weight:600;box-shadow:var(--shadow-1)}
+.side-ico{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;color:var(--muted);flex:none;transition:all .12s}
+.side-ico:hover{color:var(--accent);background:var(--surface2)}
+.side-ico.on{color:var(--accent);background:var(--accent-soft)}
+.side-search{padding:2px 8px 6px}
+.side-search input{width:100%;height:28px;padding:0 9px;border-radius:var(--r-sm);border:1px solid var(--border);
+  background:var(--bg);color:var(--ink);font-size:12.5px;outline:none}
+.side-search input:focus{border-color:var(--accent)}
+.side-body{flex:1;overflow:auto;padding:6px 8px 12px}
+.side-group{margin-bottom:4px}
+.side-group-hd{display:flex;align-items:center;gap:6px;padding:8px 9px 4px;font-size:11.5px;color:var(--muted);letter-spacing:.4px}
+.side-count{margin-left:auto;font-family:var(--mono);font-size:10.5px;background:var(--surface2);border-radius:99px;padding:0 6px;line-height:16px}
+.side-foot{padding:8px;border-top:1px solid var(--border)}
+.side-foot button{width:100%;height:32px;display:flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid var(--border);border-radius:var(--r-md);background:var(--bg);color:var(--ink);font-size:12.5px;font-weight:600;transition:all .12s}
+.side-foot button:hover{border-color:var(--accent);color:var(--accent)}
 .ol-item,.tree-item{display:flex;align-items:center;gap:6px;width:100%;text-align:left;padding:5px 9px;margin:1px 0;
   border-radius:var(--r-sm);font-size:13px;color:var(--ink);line-height:1.5}
 .ol-item:hover,.tree-item:hover{background:var(--surface2)}
@@ -243,12 +247,14 @@ body[data-mode="read"] [class*="slash"],body[data-mode="read"] [class*="link-too
 /* ============ 欢迎页 ============ */
 #welcome{display:flex;align-items:center;justify-content:center;
   padding:calc(var(--title-h) + var(--toolbar-h) + 12px) 24px calc(var(--status-h) + 24px)}
-#welcome .hero{width:min(560px,86%)}
-#welcome .logo{display:flex;align-items:center;gap:14px;margin-bottom:6px}
-#welcome .logo .mark{width:44px;height:44px;border-radius:12px;background:var(--accent);color:var(--accent-ink);
-  display:grid;place-items:center;font-family:var(--mono);font-weight:800;font-size:19px}
+#welcome .hero{width:min(600px,88%)}
+#welcome .w-brand{text-align:center;margin-bottom:24px}
+#welcome .w-logo{width:64px;height:64px;border-radius:16px;display:block;margin:0 auto 14px}
 #welcome h1{font-size:24px;margin:0;letter-spacing:.3px}
-#welcome .sub{color:var(--muted);font-size:13.5px;margin:2px 0 26px}
+#welcome .sub{color:var(--muted);font-size:13.5px;margin:6px 0 12px}
+.w-tags{display:flex;gap:8px;justify-content:center}
+.w-tag{font-size:11.5px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);
+  border-radius:99px;padding:1px 10px;line-height:18px}
 .w-label{font-size:11.5px;color:var(--muted);letter-spacing:.6px;margin:20px 0 8px;display:flex;align-items:center;gap:8px}
 .w-label::after{content:"";flex:1;height:1px;background:var(--border)}
 .w-list{border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-1)}
@@ -272,9 +278,8 @@ body[data-mode="read"] [class*="slash"],body[data-mode="read"] [class*="link-too
 .w-btn.primary:hover{filter:brightness(1.06)}
 .w-btn.ghost{border:1px solid var(--border);color:var(--ink);background:var(--bg)}
 .w-btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
-.w-drop{margin-top:26px;border:1.5px dashed var(--border-strong);border-radius:var(--r-lg);padding:18px;
-  text-align:center;color:var(--muted);font-size:12.5px;transition:all .15s}
-.w-drop.over{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.w-drop{margin-top:22px;text-align:center;color:var(--muted);font-size:12.5px;transition:all .15s}
+.w-drop.over{color:var(--accent)}
 body[data-doc-open] #welcome{display:none}
 body:not([data-doc-open]) #editorPane,body:not([data-doc-open]) #sourcePane{visibility:hidden}
 /* ============ 状态栏 ============ */
@@ -314,11 +319,21 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 /* ============ 命令面板 ============ */
 #btnCloseDoc{color:var(--muted)}
 #btnCloseDoc:hover{color:#c42b1c}
-/* 工具栏中部居中的命令面板入口 */
-.tbtn.pal-cen{flex:0 1 320px;justify-content:center;gap:8px;color:var(--muted);
-  background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:6px 14px}
-.tbtn.pal-cen:hover{color:var(--ink);border-color:var(--border-strong)}
-.tbtn.pal-cen kbd{margin-left:auto}
+/* 工具栏开关：文字 + 绿色胶囊（阅读优先/保持编辑、自动保存） */
+.tbtn.tgl{gap:9px;padding:0 5px;color:var(--muted);font-size:12.5px}
+.tbtn.tgl:hover{background:none;color:var(--ink)}
+.tbtn.tgl[aria-checked="true"]{color:var(--ink)}
+.tbtn.tgl .pill{position:relative;width:34px;height:19px;border-radius:10px;flex:none;
+  background:var(--border-strong);transition:background .18s}
+.tbtn.tgl .pill::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s cubic-bezier(.4,0,.2,1)}
+.tbtn.tgl[aria-checked="true"] .pill{background:var(--accent)}
+.tbtn.tgl[aria-checked="true"] .pill::after{left:17px}
+/* 工具栏搜索命令框（右簇） */
+.tbtn.search{flex:0 1 280px;justify-content:flex-start;gap:8px;color:var(--muted);height:30px;
+  background:var(--surface2);border:1px solid transparent;border-radius:var(--r-md);padding:0 10px}
+.tbtn.search:hover{color:var(--ink);border-color:var(--border-strong)}
+.tbtn.search kbd{margin-left:auto}
 #palette{position:fixed;inset:0;z-index:50;display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
 #palette.show{display:flex}
 #palette .scrim2{position:absolute;inset:0;background:rgba(10,12,11,.28)}
@@ -417,36 +432,36 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <button class="tbtn" id="btnSidebar" title="侧栏">
     <svg class="ic" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M8 4v12"/></svg>
   </button>
-  <button class="tbtn" id="btnNewDoc" title="新建 Markdown 文档">
-    <svg class="ic" viewBox="0 0 20 20"><path d="M11 3H6a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V7z"/><path d="M11 3v4h4M10 11v4M8 13h4"/></svg>
-    <span>新建</span>
-  </button>
   <div class="seg" id="modeSeg">
     <button data-m="read">阅读</button>
     <button data-m="edit">编辑</button>
     <button data-m="source">源码</button>
   </div>
   <div class="spacer"></div>
-  <button class="tbtn mode-lock" id="btnKeepMode" role="switch" aria-checked="false" title="开启后切换文档保持当前模式（编辑/源码）；关闭则每次回到阅读模式">
-    <svg class="ic" viewBox="0 0 20 20"><path d="M4 5h9a5 5 0 010 10H4"/><circle cx="6" cy="10" r="2.4"/></svg>
+  <button class="tbtn tgl" id="btnKeepMode" role="switch" aria-checked="false" title="开启后切换文档保持当前模式（编辑/源码）；关闭则每次回到阅读模式">
     <span id="keepModeLabel">阅读优先</span>
-    <span class="mini-switch" aria-hidden="true"></span>
+    <span class="pill" aria-hidden="true"></span>
   </button>
-  <div class="spacer"></div>
-  <button class="tbtn pal-cen" id="btnPalette" title="命令面板（Ctrl K）">
+  <button class="tbtn tgl" id="btnAutosave" role="switch" aria-checked="true" title="编辑停止 0.9 秒后自动写回原文件">
+    <span>自动保存</span>
+    <span class="pill" aria-hidden="true"></span>
+  </button>
+  <div class="vline"></div>
+  <button class="tbtn search" id="btnPalette" title="命令面板（Ctrl K）">
     <svg class="ic" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/></svg>
-    <span>搜索命令…</span><kbd>Ctrl K</kbd>
+    <span>搜索命令</span><kbd>Ctrl K</kbd>
   </button>
-  <div class="spacer"></div>
   <div class="vline"></div>
   <button class="tbtn" id="btnCloseDoc" title="关闭文档（回到主页）" hidden>
     <svg class="ic" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>关闭文档</span>
   </button>
-  <button class="tbtn" id="btnTheme" title="切换主题">主题：自动</button>
+  <button class="tbtn" id="btnTheme" title="切换主题">
+    <svg class="ic" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6.5"/><path d="M10 3.5a6.5 6.5 0 010 13z" fill="currentColor" stroke="none"/></svg>
+    <span id="themeLabel">自动</span>
+  </button>
   <button class="tbtn" id="btnExport" title="导出" hidden>导出</button>
   <button class="tbtn" id="btnSettings" title="设置">
-    <svg class="ic" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.5"/><path d="M10 3v2.2M10 14.8V17M3 10h2.2M14.8 10H17M5.1 5.1l1.5 1.5M13.4 13.4l1.5 1.5M14.9 5.1l-1.5 1.5M6.6 13.4l-1.5 1.5"/></svg>
-    <span>设置</span>
+    <svg class="ic" viewBox="0 0 20 20"><path d="M3 7h8.2M15.2 7H17M3 13h1.8M8.8 13H17"/><circle cx="13.5" cy="7" r="2"/><circle cx="6.5" cy="13" r="2"/></svg>
   </button>
 </nav>
 
@@ -460,38 +475,63 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- 主区 -->
 <div id="main">
   <aside id="sidebar">
-    <div class="side-tabs">
-      <button data-t="outline" class="on">大纲</button>
-      <button data-t="tree">书架</button>
-    </div>
-    <div class="side-body" id="outlinePane"><div class="side-empty">打开文档后<br>这里显示章节大纲</div></div>
-    <div class="side-body" id="treePane" hidden>
-      <div id="realFiles"></div>
-    </div>
-  </aside>
+      <div class="side-tabs">
+        <button data-t="outline" id="tabOutline" class="on">大纲</button>
+        <button data-t="tree" id="tabShelf">书架</button>
+        <button class="side-ico" id="btnSideSearch" title="搜索文档">
+          <svg class="ic" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/></svg>
+        </button>
+        <button class="side-ico" id="btnSideNewFolder" title="新建分类文件夹">
+          <svg class="ic" viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg>
+        </button>
+      </div>
+      <div class="side-search" id="sideSearchRow" hidden>
+        <input id="sideSearchInput" placeholder="搜索文档…" spellcheck="false">
+      </div>
+      <div class="side-body" id="outlinePane"><div class="side-empty">打开文档后<br>这里显示章节大纲</div></div>
+      <div class="side-body" id="treePane" hidden>
+        <div class="side-group">
+          <div class="side-group-hd"><span>最近打开</span><span class="side-count" id="sideRecentsCount">0</span></div>
+          <div id="sideRecents"></div>
+        </div>
+        <div class="side-group">
+          <div class="side-group-hd" id="shelfGroupHd"><span>我的书架</span><span class="side-count" id="sideShelfCount">0</span></div>
+          <div id="realFiles"></div>
+        </div>
+      </div>
+      <div class="side-foot">
+        <button id="btnNewDoc" title="新建 Markdown 文档">
+          <svg class="ic" viewBox="0 0 20 20"><path d="M10 4.5v11M4.5 10h11"/></svg><span>新建文档</span>
+        </button>
+      </div>
+    </aside>
   <div id="content">
     <!-- 欢迎页 -->
     <div class="pane" id="welcome">
-      <div class="hero">
-        <div class="logo"><img src="brand.png" style="width:44px;height:44px;border-radius:12px" alt=""><h1>LightInk 轻墨</h1></div>
-        <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得 · 自动保存 <span style="color:var(--accent)">v1.0.18</span></p>
-        <div class="w-label">最近打开
-          <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">全部清除</button>
+          <div class="hero">
+            <div class="w-brand">
+              <img src="brand.png" class="w-logo" alt="">
+              <h1>LightInk 轻墨</h1>
+              <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得</p>
+              <div class="w-tags"><span class="w-tag" id="wTagVer">v1.0.19</span><span class="w-tag">本地优先</span></div>
+            </div>
+            <div class="w-label">最近打开
+              <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">清除记录</button>
+            </div>
+            <div class="w-list" id="recentList"></div>
+            <div class="w-actions">
+              <button class="w-btn primary" id="btnOpenFile">
+                <svg class="ic" viewBox="0 0 20 20"><path d="M3 6a2 2 0 012-2h3l2 2h5a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+                打开文件
+              </button>
+              <button class="w-btn ghost" id="btnOpenDir">
+                <svg class="ic" viewBox="0 0 20 20"><path d="M3 7a2 2 0 012-2h4l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
+                打开文件夹
+              </button>
+            </div>
+            <div class="w-drop" id="dropHint">提示：把 .md 文件拖入窗口任意位置即可打开</div>
+          </div>
         </div>
-        <div class="w-list" id="recentList"></div>
-        <div class="w-actions">
-          <button class="w-btn primary" id="btnOpenFile">
-            <svg class="ic" viewBox="0 0 20 20"><path d="M3 6a2 2 0 012-2h3l2 2h5a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
-            打开文件
-          </button>
-          <button class="w-btn ghost" id="btnOpenDir">
-            <svg class="ic" viewBox="0 0 20 20"><path d="M3 7a2 2 0 012-2h4l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
-            打开文件夹
-          </button>
-        </div>
-        <div class="w-drop" id="dropHint">把 .md 文件拖到这里，或双击关联的 Markdown 文件</div>
-      </div>
-    </div>
     <!-- 编辑/阅读 -->
     <div class="pane" id="editorPane"><div id="editorWrap"><div id="editor"></div></div></div>
     <!-- 源码 -->
@@ -501,11 +541,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
 <!-- 状态栏 -->
 <footer id="statusbar">
-  <span id="stMode">所见即所得</span>
-  <span id="stCount"></span>
-  <span class="sp"></span>
-  <span id="stEngine"></span>
-  <span id="stSave">就绪</span>
+  <span id="stMode">阅读模式</span>
+    <span id="stCount"></span>
+    <span class="sp"></span>
+    <span id="stDocs">0 个文档</span>
+    <span id="stEnc">UTF-8</span>
+    <span id="stEol">LF</span>
+    <span id="stSave">就绪</span>
 </footer>
 
 <!-- 设置抽屉 -->
@@ -716,7 +758,7 @@ const errPush = m => {
   window.__errors.push(String(m));
   const b = $('#banner');
   $('#bannerMsg').textContent = '⚠ ' + String(m).slice(0, 300);
-  b.style.display = 'block';
+  b.style.display = 'block';               // 常驻显示，由用户手动关闭
   $('#bannerClose').onclick = () => { b.style.display = 'none'; };
 };
 window.addEventListener('error', e => errPush(e.message));
@@ -810,9 +852,8 @@ function askSwitchUnsaved(defaultName){
     setTimeout(()=>{ input.focus(); const dot=input.value.lastIndexOf('.'); input.setSelectionRange(0, dot>0?dot:input.value.length); },50);
   });
 }
-window.__askSwitchUnsaved = askSwitchUnsaved;
-
 window.__askCloseUnsaved = askCloseUnsaved;
+window.__askSwitchUnsaved = askSwitchUnsaved;
 
 /* 关闭主窗口对话框：最小化托盘 / 退出 */
 function askQuitDialog(){
@@ -857,10 +898,9 @@ if (window.mdr?.isElectron) {
 let Crepe=null;
 try {
   Crepe = (await import('./vendor/crepe.bundle.mjs')).Crepe;
-  $('#stEngine').textContent='Milkdown Crepe';
 } catch(e1) {
-  try { Crepe = (await import('https://esm.sh/@milkdown/crepe@7.22.1?bundle')).Crepe; $('#stEngine').textContent='Milkdown Crepe (CDN)'; }
-  catch(e2){ $('#stEngine').textContent='静态降级'; errPush('编辑内核加载失败：'+e2); }
+  try { Crepe = (await import('https://esm.sh/@milkdown/crepe@7.22.1?bundle')).Crepe; }
+  catch(e2){ errPush('编辑内核加载失败：'+e2); }
 }
 
 /* ---------- Markdown 渲染器（导出用，CommonMark+GFM，IIFE 全局 mdrMd） ---------- */
@@ -872,7 +912,7 @@ mdrMdReady();
 const docs = { demo:$('#doc-demo').textContent.trim(), readme:$('#doc-readme').textContent.trim(), notes:$('#doc-notes').textContent.trim() };
 const docNameOf = { demo:'功能演示.md', readme:'README示例.md', notes:'会议笔记.md' };
 const LS = { theme:'mdr:theme', set:'mdr:settings', doc:id=>'mdr:doc:'+id };
-let crepe=null, mode='read', cur=null, saveTimer=null, outlineTimer=null, dirtyGuard=false, curDirty=false;
+let crepe=null, mode='read', cur=null, saveTimer=null, outlineTimer=null, dirtyGuard=false, curDirty=false, docLoading=false;
 const settings = Object.assign({ fs:17, lh:1.9, mw:44, autosave:true }, JSON.parse(localStorage.getItem(LS.set)||'{}'));
 let keepModePref = localStorage.getItem('mdr:keepMode') === '1';
 
@@ -884,13 +924,15 @@ function applySettings(){
   $('#vFs').textContent=settings.fs+'px'; $('#vLh').textContent=(+settings.lh).toFixed(2); $('#vMw').textContent=settings.mw+'em';
   $('#setFs').value=settings.fs; $('#setLh').value=settings.lh; $('#setMw').value=settings.mw;
   $('#setAutosave').classList.toggle('on', settings.autosave);
-  $('#setAutosave').setAttribute('aria-checked', settings.autosave);
+    $('#setAutosave').setAttribute('aria-checked', settings.autosave);
+    $('#btnAutosave').setAttribute('aria-checked', settings.autosave);
   localStorage.setItem(LS.set, JSON.stringify(settings));
 }
 $('#setFs').oninput=e=>{ settings.fs=+e.target.value; applySettings(); };
 $('#setLh').oninput=e=>{ settings.lh=+e.target.value; applySettings(); };
 $('#setMw').oninput=e=>{ settings.mw=+e.target.value; applySettings(); };
 $('#setAutosave').onclick=()=>{ settings.autosave=!settings.autosave; applySettings(); toast(settings.autosave?'自动保存已开启':'自动保存已关闭'); };
+$('#btnAutosave').onclick=()=>{ settings.autosave=!settings.autosave; applySettings(); toast(settings.autosave?'自动保存已开启':'自动保存已关闭'); };
 
 /* ---------- 主题 ---------- */
 const mq=matchMedia('(prefers-color-scheme: dark)');
@@ -899,7 +941,7 @@ function applyTheme(){
   document.documentElement.dataset.theme=theme;
   const dark=theme==='dark'||(theme==='auto'&&mq.matches);
   $('#css-frame-dark').media=dark?'all':'not all';
-  $('#btnTheme').textContent='主题：'+({auto:'自动',light:'浅色',dark:'深色'})[theme];
+  $('#themeLabel').textContent=({auto:'自动',light:'浅色',dark:'深色'})[theme];
   $$('#themeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.th===theme));
   localStorage.setItem(LS.theme,theme);
 }
@@ -910,18 +952,31 @@ mq.addEventListener('change',applyTheme);
 /* ---------- 编辑器 ---------- */
 function staticFallback(md){ const el=$('#editor'); el.innerHTML='<pre style="white-space:pre-wrap;font:inherit"></pre>'; el.firstChild.textContent=md; }
 async function mountEditor(md){
-  if(!Crepe) return staticFallback(md);
-  if(crepe){ try{crepe.destroy();}catch(_){} crepe=null; }
-  $('#editor').innerHTML='';
-  crepe=new Crepe({ root:$('#editor'), defaultValue:md });
-  await crepe.create();
-  try{ crepe.on(l=>l.markdownUpdated((ctx,m)=>{ cur.text=m; markDirty(); scheduleOutline(); })); }catch(_){}
-  crepe.setReadonly(mode==='read');
-  const pmEl = document.querySelector('#editor .ProseMirror');
-  if (pmEl) pmEl.addEventListener('input', () => { dirtyGuard = !cur?.path; }, { once:false });
-  buildOutline(); updateCount(cur.text);
+  // 打开/渲染阶段：Crepe 初始化与首帧也会触发 markdownUpdated，此期间不得标脏（否则打开文件即被自动保存改写）
+  docLoading = true;
+  const clearLoading = () => { docLoading = false; };
+  try{
+    if(!Crepe){ staticFallback(md); return; }
+    if(crepe){ try{crepe.destroy();}catch(_){} crepe=null; }
+    $('#editor').innerHTML='';
+    crepe=new Crepe({ root:$('#editor'), defaultValue:md });
+    await crepe.create();
+    try{ crepe.on(l=>l.markdownUpdated((ctx,m)=>{ cur.text=m; markDirty(); scheduleOutline(); })); }catch(_){}
+    crepe.setReadonly(mode==='read');
+    const pmEl = document.querySelector('#editor .ProseMirror');
+    if (pmEl) {
+      pmEl.addEventListener('input', () => { dirtyGuard = !cur?.path; }, { once:false });
+      // 用户真实输入的第一次交互即解除加载态，随后的修改正常标脏
+      ['keydown','paste','cut','drop'].forEach(ev=>pmEl.addEventListener(ev, clearLoading, { once:true }));
+    }
+    buildOutline(); updateCount(cur.text);
+  } finally {
+    // 兜底：即使没有任何交互，渲染结束后也解除加载态（留出首帧回调的时间窗）
+    setTimeout(clearLoading, 1200);
+  }
 }
 function markDirty(){
+  if(docLoading) return;    // 打开/渲染阶段产生的回调不算用户修改，不得触发自动保存
   dirtyGuard = !cur.path;   // 磁盘文件自动保存；无路径（新建未存）才需要守卫
   curDirty = true;          // 有未保存修改（切换文档时据此提示）
   $('#docTitle').classList.add('modified');
@@ -933,9 +988,9 @@ async function saveNow(){
   try{
     if(cur.path && window.mdr?.isElectron){
       dirtyGuard = false;
-      await window.mdr.writeFile(cur.path, cur.text);
+      await window.mdr.writeFile(cur.path, textForWrite());
       $('#stSave').textContent='已保存到文件 '+new Date().toLocaleTimeString('zh-CN',{hour12:false});
-    } else if(cur.handle){ const w=await cur.handle.createWritable(); await w.write(cur.text); await w.close();
+    } else if(cur.handle){ const w=await cur.handle.createWritable(); await w.write(textForWrite()); await w.close();
       $('#stSave').textContent='已保存到文件 '+new Date().toLocaleTimeString('zh-CN',{hour12:false}); }
     else{ localStorage.setItem(LS.doc(cur.id),cur.text);
       $('#stSave').textContent='已自动保存 '+new Date().toLocaleTimeString('zh-CN',{hour12:false}); }
@@ -1006,7 +1061,7 @@ async function requestOpenDoc(o){
     // 保存当前文档
     try {
       if (cur.path && window.mdr?.isElectron) {
-        await window.mdr.writeFile(cur.path, cur.text);
+        await window.mdr.writeFile(cur.path, textForWrite());
         dirtyGuard = false;
         $('#docTitle').classList.remove('modified');
       } else if (cur.handle) {
@@ -1016,7 +1071,7 @@ async function requestOpenDoc(o){
       } else {
         // 新文档：需要选择保存位置
         const target = await window.mdr.docCreate(cur.name, window.__docsDir || undefined);
-        await window.mdr.writeFile(target, cur.text);
+        await window.mdr.writeFile(target, textForWrite());
         dirtyGuard = false;
         $('#docTitle').classList.remove('modified');
       }
@@ -1033,11 +1088,14 @@ async function doOpenDoc(o){
   const useLocal = !o.handle && !o.path;
   const saved = useLocal ? localStorage.getItem(LS.doc(o.id)) : null;
   cur={ id:o.id, name:o.name||docNameOf[o.id]||o.id, text:saved??o.text, handle:o.handle||null, path:o.path||null };
+  // 记录原文件行尾：写盘时按原样还原（避免把 CRLF 文件静默改成 LF）
+  cur.eol = /\r\n/.test(cur.text || '') ? 'CRLF' : 'LF';
   document.body.setAttribute('data-doc-open','1');
   $('#docTitleText').textContent=cur.name;
   $('#btnCloseDoc').hidden=false;
   $('#docTitle').classList.remove('modified');
   $('#stSave').textContent=saved&&!o.handle?'已恢复本地修改':'就绪';
+  updateDocInfo();
   // 初始模式：阅读优先（默认）或保持当前模式（编辑/源码）
   const keepEdit = typeof keepModePref !== 'undefined' && keepModePref && (mode==='edit' || mode==='source');
   const startMode = keepEdit ? mode : 'read';
@@ -1046,6 +1104,7 @@ async function doOpenDoc(o){
   $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===startMode));
   $('#stMode').textContent=({edit:'所见即所得',read:'阅读模式',source:'源码模式'})[startMode];
   await mountEditor(cur.text);
+  // 兜底：阅读优先时对冲一切竞态；保持模式时反向兜底确保不被重置
   requestAnimationFrame(()=>{
     if(!cur) return;
     if(startMode==='read'){
@@ -1061,11 +1120,31 @@ async function doOpenDoc(o){
 
 /* ---------- 侧栏 ---------- */
 $('#btnSidebar').onclick=()=>document.body.classList.toggle('side-hidden');
-$$('.side-tabs button').forEach(b=>b.onclick=()=>{
-  $$('.side-tabs button').forEach(x=>x.classList.toggle('on',x===b));
+$$('.side-tabs button[data-t]').forEach(b=>b.onclick=()=>{
+  $$('.side-tabs button[data-t]').forEach(x=>x.classList.toggle('on',x===b));
   $('#outlinePane').hidden=b.dataset.t!=='outline';
   $('#treePane').hidden=b.dataset.t!=='tree';
 });
+/* 侧栏搜索：过滤「最近打开」与「我的书架」列表 */
+function applySideFilter(q){
+  q=(q||'').trim().toLowerCase();
+  $$('#sideRecents .tree-item, #realFiles .shelf-file-row, #realFiles .tree-folder').forEach(el=>{
+    const hit = !q || (el.textContent||'').toLowerCase().includes(q);
+    el.style.display = hit ? '' : 'none';
+  });
+}
+$('#btnSideSearch').onclick=()=>{
+  const row=$('#sideSearchRow');
+  row.hidden=!row.hidden;
+  $('#btnSideSearch').classList.toggle('on', !row.hidden);
+  if(!row.hidden){ $('#sideSearchInput').focus(); }
+  else { $('#sideSearchInput').value=''; applySideFilter(''); }
+};
+$('#sideSearchInput').oninput=()=>applySideFilter($('#sideSearchInput').value);
+$('#btnSideNewFolder').onclick=async()=>{
+  const name = await askText('新建文件夹'); if(!name) return;
+  await window.mdr.shelfFolderAdd(name.trim()); renderShelfData();
+};
 
 /* ---------- 文件/文件夹（真实系统） ---------- */
 /* ---------- Electron 桥：打开真实文件 ---------- */
@@ -1095,7 +1174,7 @@ async function createNewDoc(){
     if (choice?.action === 'save') {
       try {
         if (cur.path && window.mdr?.isElectron) {
-          await window.mdr.writeFile(cur.path, cur.text);
+          await window.mdr.writeFile(cur.path, textForWrite());
           dirtyGuard = false;
           $('#docTitle').classList.remove('modified');
         } else if (cur.handle) {
@@ -1104,7 +1183,7 @@ async function createNewDoc(){
           $('#docTitle').classList.remove('modified');
         } else {
           const target = await window.mdr.docCreate(cur.name, window.__docsDir || undefined);
-          await window.mdr.writeFile(target, cur.text);
+          await window.mdr.writeFile(target, textForWrite());
           dirtyGuard = false;
           $('#docTitle').classList.remove('modified');
         }
@@ -1166,14 +1245,10 @@ const SVG_LINK='<path d="M6.5 9.5l3-3M5 11a2.5 2.5 0 010-3.5l1.5-1.5M11 5a2.5 2.
 async function renderShelfData(){
   const box=$('#realFiles'); box.innerHTML='';
   const data = await window.mdr.shelfData();
-  // 顶部操作条：新建文件夹 / 添加现有文件到书架
-  const bar=document.createElement('div'); bar.className='shelf-bar';
-  bar.append(
-    shelfHeaderBtn('新建文件夹', SVG_ADD, async()=>{
-      const name = await askText('新建文件夹'); if(!name) return;
-      await window.mdr.shelfFolderAdd(name.trim()); renderShelfData();
-    }),
-    shelfHeaderBtn('把当前打开的文档加入书架', SVG_LINK, async()=>{
+  // 「我的书架」分组头右侧：把当前打开的文档加入书架
+  const hd=$('#shelfGroupHd');
+  if(hd){ hd.querySelectorAll('.shelf-btn').forEach(el=>el.remove());
+    hd.appendChild(shelfHeaderBtn('把当前打开的文档加入书架', SVG_LINK, async()=>{
       if(!cur||!cur.path){ toast('先打开一个文档'); return; }
       if(!data.folders.length){ await window.mdr.shelfFolderAdd('我的书架'); }
       const d2 = await window.mdr.shelfData();
@@ -1181,10 +1256,11 @@ async function renderShelfData(){
       const name = await askText('加入哪个文件夹？（输入序号）\n' + d2.folders.map((f,i)=>(i+1)+'. '+f.name).join('\n'));
       const idx = parseInt(name,10)-1;
       if(name && idx>=0 && idx<d2.folders.length){ await window.mdr.shelfFileAdd(d2.folders[idx].id, cur.path); renderShelfData(); toast('已加入：'+d2.folders[idx].name); }
-    })
-  );
-  box.appendChild(bar);
-  if(!data.folders.length){ const d=document.createElement('div'); d.className='side-empty'; d.textContent='书架还是空的\n点击上方 + 新建文件夹'; box.appendChild(d); }
+    }));
+    const c=$('#sideShelfCount');
+    if(c) c.textContent = String(data.folders.reduce((n,f)=>n+(f.files?f.files.length:0),0));
+  }
+  if(!data.folders.length){ const d=document.createElement('div'); d.className='side-empty'; d.textContent='书架还是空的\n点击右上角 + 新建文件夹'; box.appendChild(d); }
   for(const folder of data.folders){
     const head=document.createElement('div'); head.className='tree-folder shelf-folder';
     const label=document.createElement('span'); label.textContent='📁 '+folder.name+'（'+folder.files.length+'）'; label.style.flex='1';
@@ -1214,7 +1290,7 @@ async function renderShelfData(){
       box.appendChild(row);
     }
   }
-  $$('.side-tabs button')[1].click();
+  $('#tabShelf').click();
 }
 window.__renderShelfData = renderShelfData;
 async function pickDir(){
@@ -1244,7 +1320,7 @@ async function pickDir(){
       b.onclick=async()=>{ const f=await h.getFile(); requestOpenDoc({id:'file:'+name,name,text:await f.text(),handle:h}); };
       box.appendChild(b);
     });
-    $$('.side-tabs button')[1].click();
+    $('#tabShelf').click();
   }catch(e){ if(e.name!=='AbortError') errPush(e); }
 }
 $('#btnOpenFile').onclick=pickFile;
@@ -1292,7 +1368,6 @@ let palSel=0, palItems=[];
 function renderPal(q=''){
   palItems=commands.filter(c=>c.t.toLowerCase().includes(q.toLowerCase()));
   palSel=0; palList.innerHTML='';
-  if (window.__swapCtrl) queueMicrotask(()=>window.__swapCtrl());
   palItems.forEach((c,i)=>{
     const b=document.createElement('button'); b.className='p-item'+(i===palSel?' sel':'');
     b.innerHTML=`<span>${c.t}</span>${c.k?`<span class="hint">${c.k}</span>`:''}`;
@@ -1323,23 +1398,48 @@ window.addEventListener('keydown',e=>{
 
 /* ---------- Electron：窗口控件 / 最近文件 / 关联打开 ---------- */
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function relTime(ts){
+  if(!ts) return '';
+  const d = Date.now() - ts;
+  if(d < 60e3) return '刚刚';
+  if(d < 3600e3) return Math.floor(d/60e3) + ' 分钟前';
+  if(d < 86400e3) return Math.floor(d/3600e3) + ' 小时前';
+  if(d < 172800e3) return '昨天';
+  if(d < 2592000e3) return Math.floor(d/86400e3) + ' 天前';
+  return new Date(ts).toLocaleDateString('zh-CN');
+}
 async function loadRecentsUI(){
   const recents = await window.mdr.listRecents();
   const list = $('#recentList'); list.innerHTML='';
+  const side = $('#sideRecents'); if(side) side.innerHTML='';
+  const rc = $('#sideRecentsCount'); if(rc) rc.textContent = String(recents.length);
+  const sd = $('#stDocs'); if(sd) sd.textContent = recents.length + ' 个文档';
   $('#btnClearRecents').hidden = !recents.length;
-  if(!recents.length){ list.innerHTML='<div class="side-empty">暂无最近文件</div>'; return; }
+  if(!recents.length){
+    list.innerHTML='<div class="side-empty">暂无最近文件</div>';
+    if(side) side.innerHTML='<div class="side-empty">暂无最近文件</div>';
+    if($('#sideSearchRow') && !$('#sideSearchRow').hidden) applySideFilter($('#sideSearchInput').value);
+    return;
+  }
   for(const r of recents){
     const row=document.createElement('div'); row.className='w-item'; row.style.cursor='default';
     const open=document.createElement('button'); open.className='w-open'; open.style.cssText='display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left';
     open.innerHTML=`<span class="ficon"><svg class="ic" viewBox="0 0 20 20"><path d="M6 3h6l3 3v11H6z"/><path d="M12 3v3h3"/></svg></span>
       <span style="min-width:0"><span class="name">${esc(r.name)}</span><br><span class="path">${esc(r.path)}</span></span>`;
     open.onclick=()=>openPath(r.path);
+    const meta=document.createElement('span'); meta.className='meta'; meta.textContent=relTime(r.ts);
     const del=document.createElement('button'); del.className='w-del'; del.title='从列表中移除';
     del.innerHTML='<svg class="ic" viewBox="0 0 16 16" style="width:11px;height:11px"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
     del.onclick=async(ev)=>{ ev.stopPropagation(); await window.mdr.removeRecent(r.path); loadRecentsUI(); };
-    row.append(open, del);
+    row.append(open, meta, del);
     list.appendChild(row);
+    if(side){
+      const b=document.createElement('button'); b.className='tree-item'; b.textContent=r.name; b.title=r.path;
+      b.onclick=()=>openPath(r.path);
+      side.appendChild(b);
+    }
   }
+  if($('#sideSearchRow') && !$('#sideSearchRow').hidden) applySideFilter($('#sideSearchInput').value);
 }
 $('#btnClearRecents').onclick=async()=>{
   await window.mdr.clearRecents();
@@ -1538,13 +1638,30 @@ function closeDoc(){
   $('#editor').innerHTML='';
   $('#outlinePane').innerHTML='<div class="side-empty">打开文档后<br>这里显示章节大纲</div>';
   $('#stCount').textContent='';
-  $('#stSave').textContent='就绪'; $('#stSave').classList.remove('dirty');
+      $('#stMode').textContent='阅读模式';
+      $('#stEnc').textContent='UTF-8'; $('#stEol').textContent='LF';
+    $('#stSave').textContent='就绪'; $('#stSave').classList.remove('dirty');
   $('#docTitleText').textContent='未打开文档';
   $('#btnCloseDoc').hidden=true;
   $('#docTitle').classList.remove('modified');
   $('#editorWrap').classList.remove('a4-paper');
   cur=null; curDirty=false;
   document.body.removeAttribute('data-doc-open');
+}
+
+/* ---------- 写盘文本：按原文件行尾还原（CRLF 文件写回 CRLF） ---------- */
+function textForWrite(t){
+  t = (t == null) ? ((cur && cur.text) || '') : t;
+  if(cur && cur.eol === 'CRLF') return t.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+  return t;
+}
+
+/* ---------- 状态栏：当前文档的编码 / 换行符 ---------- */
+function updateDocInfo(){
+  const t = (cur && cur.text) || '';
+  $('#stEnc').textContent = 'UTF-8';
+  // 优先显示记录下来的原文件行尾（编辑后 cur.text 会变成 LF，但磁盘上仍是原行尾）
+  $('#stEol').textContent = (cur && cur.eol) ? cur.eol : (/\r\n/.test(t) ? 'CRLF' : 'LF');
 }
 
 /* ---------- 关闭守卫包装（须在 closeDoc 定义后） ---------- */
@@ -1559,7 +1676,7 @@ async function guardClose(){
   if(!name){ toast('名称不能为空'); return; }
   try{
     const target = await window.mdr.docCreate(name, choice.dir || undefined);
-    await window.mdr.writeFile(target, cur.text);
+    await window.mdr.writeFile(target, textForWrite());
     dirtyGuard = false; _closeDoc();
     toast('已保存：' + target.split(/[\\/]/).pop());
   }catch(e){ errPush('保存失败：'+(e.message||e)); }
