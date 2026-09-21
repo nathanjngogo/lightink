@@ -11,7 +11,7 @@
   /* ---------- 欢迎页 ---------- */
   step('品牌区为大图标+标题+副标题+标签', !!$('#welcome .w-brand .w-logo') && !!$('#welcome h1'));
   const lg = $('#welcome .w-logo').getBoundingClientRect();
-  step('图标尺寸 64px', Math.round(lg.width) === 64 && Math.round(lg.height) === 64, `${Math.round(lg.width)}×${Math.round(lg.height)}`);
+  step('图标尺寸 80px（按设计稿放大）', Math.round(lg.width) === 80 && Math.round(lg.height) === 80, `${Math.round(lg.width)}×${Math.round(lg.height)}`);
   const tags = $$('#welcome .w-tag').map(t => t.textContent);
   out.welcomeTags = tags;
   step('两个标签：版本 + 本地优先', tags.length === 2 && tags[1] === '本地优先');
