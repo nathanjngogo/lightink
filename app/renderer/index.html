@@ -567,7 +567,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
               <img src="brand.png" class="w-logo" alt="">
               <h1>LightInk 轻墨</h1>
               <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得</p>
-              <div class="w-tags"><span class="w-tag" id="wTagVer">v1.0.21</span><span class="w-tag">本地优先</span></div>
+              <div class="w-tags"><span class="w-tag" id="wTagVer">v1.0.22</span><span class="w-tag">本地优先</span></div>
             </div>
             <div class="w-label">最近打开
               <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">清除记录</button>
@@ -1426,8 +1426,15 @@ scrim.onclick=()=>showDrawer(false);
 
 /* ---------- 命令面板 ---------- */
 const palette=$('#palette'), palInput=$('#palInput'), palList=$('#palList');
+// 查看随包使用说明书（app/manual/使用说明书.md，经 preload 桥读取）
+async function openManual(){
+  const m = await window.mdr.readManual();
+  if(m?.text) requestOpenDoc({ id:'manual:lightink', name:m.name, text:m.text });
+  else toast('说明书不可用');
+}
 const commands=[
   { t:'打开文件', k:'Ctrl O', run:pickFile },
+  { t:'查看使用说明书', k:'', run:openManual },
   { t:'打开文件夹（书架）', k:'', run:pickDir },
   { t:'模式：阅读', k:'', run:()=>setMode('read') },
   { t:'模式：编辑', k:'', run:()=>setMode('edit') },

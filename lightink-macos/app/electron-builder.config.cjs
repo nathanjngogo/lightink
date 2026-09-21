@@ -6,7 +6,7 @@ module.exports = {
   appId: 'app.lightink.reader',
   productName: 'LightInk',
   directories: { output: 'dist' },
-  files: ['main.cjs', 'preload.cjs', 'renderer/**/*'],
+  files: ['main.cjs', 'preload.cjs', 'renderer/**/*', 'manual/**/*'],
   artifactName: '${productName}-${version}-macOS.${ext}',
   appImage: { artifactName: '${productName}-${version}-linux.${ext}' },
   mac: {

@@ -23,6 +23,9 @@ contextBridge.exposeInMainWorld('mdr', {
   exportPrintPdf: (p, html) => ipcRenderer.invoke('export:print-pdf', p, html),
   getPathForFile: (file) => webUtils.getPathForFile(file),
 
+  /* 随包说明书 */
+  readManual: () => ipcRenderer.invoke('manual:read'),
+
   /* 最近文件 */
   listRecents: () => ipcRenderer.invoke('recents:list'),
   addRecent: (p, name) => ipcRenderer.invoke('recents:add', p, name),

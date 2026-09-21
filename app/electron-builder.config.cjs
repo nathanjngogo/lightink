@@ -5,7 +5,7 @@ module.exports = {
   appId: 'app.lightink.reader',
   productName: 'LightInk',
   directories: { output: 'dist' },
-  files: ['main.cjs', 'preload.cjs', 'renderer/**/*'],
+  files: ['main.cjs', 'preload.cjs', 'renderer/**/*', 'manual/**/*'],
   artifactName: '${productName}-Setup-${version}.${ext}',
   win: {
     icon: 'build/icon.ico',

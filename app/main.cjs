@@ -195,6 +195,15 @@ function registerIpc() {
     const data = await fsp.readFile(resolved);
     return { mime, data: data.toString('base64') };
   });
+  ipcMain.handle('manual:read', () => {
+    // 随包说明书：读取失败不抛崩，交由渲染层 toast 降级
+    try {
+      const text = fs.readFileSync(path.join(__dirname, 'manual', '使用说明书.md'), 'utf8');
+      return { name: 'LightInk 使用说明书.md', text };
+    } catch {
+      return { error: '说明书缺失' };
+    }
+  });
   ipcMain.handle('dir:list-md', async (_e, p) => {
     const dir = path.resolve(String(p));
     const entries = await fsp.readdir(dir, { withFileTypes: true });

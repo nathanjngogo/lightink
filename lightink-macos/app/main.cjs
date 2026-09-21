@@ -205,6 +205,15 @@ function registerIpc() {
     const data = await fsp.readFile(resolved);
     return { mime, data: data.toString('base64') };
   });
+  ipcMain.handle('manual:read', () => {
+    // bundled manual: never throw, let the renderer fall back to a toast
+    try {
+      const text = fs.readFileSync(path.join(__dirname, 'manual', '使用说明书.md'), 'utf8');
+      return { name: 'LightInk 使用说明书.md', text };
+    } catch {
+      return { error: '说明书缺失' };
+    }
+  });
   ipcMain.handle('dir:list-md', async (_e, p) => {
     const dir = path.resolve(String(p));
     const entries = await fsp.readdir(dir, { withFileTypes: true });
