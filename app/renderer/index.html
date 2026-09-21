@@ -9,6 +9,15 @@
 <link id="css-frame" rel="stylesheet" href="vendor/crepe-frame.css">
 <link id="css-frame-dark" rel="stylesheet" href="vendor/crepe-frame-dark.css" media="not all">
 <style>
+/* ===== 思源黑体（SIL OFL 1.1，Adobe/Google 官方子集 woff2） ===== */
+@font-face{font-family:"SourceHanSansCN";font-weight:400;font-style:normal;font-display:swap;
+  src:url("fonts/SourceHanSansCN-Regular.woff2") format("woff2")}
+@font-face{font-family:"SourceHanSansCN";font-weight:500;font-style:normal;font-display:swap;
+  src:url("fonts/SourceHanSansCN-Medium.woff2") format("woff2")}
+@font-face{font-family:"SourceHanSansCN";font-weight:700;font-style:normal;font-display:swap;
+  src:url("fonts/SourceHanSansCN-Bold.woff2") format("woff2")}
+@font-face{font-family:"SourceHanSansCN";font-weight:900;font-style:normal;font-display:swap;
+  src:url("fonts/SourceHanSansCN-Heavy.woff2") format("woff2")}
 *[hidden]{display:none!important}
 /* ============ Design Tokens ============ */
 :root{
@@ -26,8 +35,8 @@
   --accent-sh:0 1px 2px rgba(23,126,109,.26),0 2px 8px rgba(23,126,109,.16);
   --title-h:40px; --toolbar-h:44px; --status-h:26px; --sidebar-w:268px;
   --fs:17px; --lh:1.9; --measure:44em;
-  --font:-apple-system,"MiSans","HarmonyOS Sans SC","Microsoft YaHei UI","PingFang SC","Segoe UI",sans-serif;
-  --mono:"Cascadia Code","JetBrains Mono",Consolas,monospace;
+  --font:"SourceHanSansCN","Source Han Sans CN",-apple-system,"MiSans","HarmonyOS Sans SC","Microsoft YaHei UI","PingFang SC","Segoe UI",sans-serif;
+  --mono:"SourceHanSansCN","Source Han Sans CN","Cascadia Code","JetBrains Mono",Consolas,monospace;
   --r-sm:6px; --r-md:10px; --r-lg:14px;
 }
 html[data-theme="dark"]{
@@ -451,6 +460,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   .tbtn.search:hover,.side-foot button:hover,.w-btn:hover,.w-clear:hover,.dlg-btns button:hover,.shelf-btn:hover,.w-btn.primary:hover,
   .tbtn:not(.search):not(.tgl):active,.side-ico:active{transform:none}
 }
+/* ===== 覆盖 Crepe 主题字体变量（vendor/crepe-frame*.css 定义在 .milkdown，主 style 后加载故胜出） ===== */
+.milkdown{
+  --crepe-font-title:"SourceHanSansCN","Source Han Sans CN",-apple-system,"MiSans","HarmonyOS Sans SC","Microsoft YaHei UI","PingFang SC","Segoe UI",sans-serif;
+  --crepe-font-default:"SourceHanSansCN","Source Han Sans CN",-apple-system,"MiSans","HarmonyOS Sans SC","Microsoft YaHei UI","PingFang SC","Segoe UI",sans-serif;
+  --crepe-font-code:"SourceHanSansCN","Source Han Sans CN","Cascadia Code","JetBrains Mono",Consolas,monospace;
+}
 </style>
 </head>
 <body data-mode="read">
@@ -552,7 +567,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
               <img src="brand.png" class="w-logo" alt="">
               <h1>LightInk 轻墨</h1>
               <p class="sub">本地 Markdown 编辑与阅读 · 所见即所得</p>
-              <div class="w-tags"><span class="w-tag" id="wTagVer">v1.0.20</span><span class="w-tag">本地优先</span></div>
+              <div class="w-tags"><span class="w-tag" id="wTagVer">v1.0.21</span><span class="w-tag">本地优先</span></div>
             </div>
             <div class="w-label">最近打开
               <button class="w-clear" id="btnClearRecents" hidden title="清除全部最近记录">清除记录</button>
