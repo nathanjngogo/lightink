@@ -44,6 +44,12 @@ Grab `LightInk-Setup-x.y.z.exe` from the [Releases](../../releases) page and run
 
 > The installer is unsigned. If Windows SmartScreen appears, click **More info → Run anyway**.
 
+### Portable (no install)
+
+Prefer a zip you can drop anywhere? Grab `LightInk-<version>-win64-portable.zip` from [Releases](../../releases), unzip the folder, and run `LightInk.exe` — no registry writes, no shortcuts, no admin rights. Settings and the bookshelf live in `%APPDATA%\LightInk`; delete that folder plus the program folder to remove every trace. The portable build does **not** register `.md` file associations — use the installer if you want double-click-to-open.
+
+Rebuild it yourself with `npm run portable` from `app/` (config: `electron-builder.portable.cjs`; output: `dist/win-unpacked/`).
+
 ## Development
 
 ```bash
