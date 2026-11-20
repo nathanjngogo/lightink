@@ -8,7 +8,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "electron .",
-    "dist": "electron-builder --win nsis"
+    "dist": "electron-builder --win nsis",
+    "portable": "electron-builder --config electron-builder.portable.cjs"
   },
   "devDependencies": {
     "electron": "^33.4.11",
